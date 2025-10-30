@@ -65,7 +65,9 @@ class MainWindow(ttk.Frame):
 
     
     def process_child_block(self, widget: FieldWidget, prev_tab_level: int | None = 1):
-        """Processes a child block, ergo, adds a tab"""
+        """Processes a child block, ergo, manages the tab level and investigates
+           all of its child blocks and so on until there are no more
+        """
         output = ""
         tab_level = prev_tab_level
         newline = "\n"
@@ -94,8 +96,9 @@ class MainWindow(ttk.Frame):
 
 
         # Add the default options
-        for i in range(5):
-            fieldwidget_list.append(FieldWidget(self, self.childcontroller, i, 0))
+        for i in range(len(TagOptions.default_focus_options.keys())):
+            tag = TagOptions.default_focus_tags[i]
+            fieldwidget_list.append(FieldWidget(self, self.childcontroller, row=i, col=0, default_tagoption=tag))
 
         # Add in the bottom bar options (wrap in their own class)
         # Add new button

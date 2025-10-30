@@ -61,7 +61,13 @@ class WidgetOperationController:
     def add_new_child(self, row_override: int | None = 0):
         """Adds a new child to this group."""
         self.add_widget_row_size(self.parent)
-        self.control_list.append(FieldWidget(parent=self.parent, controller=self, row = self.parent.grid_info()['row'] + self.parent.current_row_span, col=0))
+
+        #FIXME: put this into its own function
+        child_type = 'focus'
+        if self.parent.tagoptions_key == 'focus':
+            child_type = 'effect'
+
+        self.control_list.append(FieldWidget(parent=self.parent, controller=self, row = self.parent.grid_info()['row'] + self.parent.current_row_span, col=0, valid_tagoptions=child_type))
         self.main_window.reapply_bottom_menu()
 
     def move_widget_up(self, widget: FieldWidget | None = None):

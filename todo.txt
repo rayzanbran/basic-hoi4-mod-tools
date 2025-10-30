@@ -1,0 +1,5 @@
+- create some kind of a "template" system for fieldWidgets with prefilled values
+- once above is done:
+-- add dynamically updating output preview window
+-- clean up fieldWidget code to allow child creation on instantiation
+- make the gui look nicer

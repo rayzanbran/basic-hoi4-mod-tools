@@ -10,8 +10,10 @@ class FieldWidget(ttk.Frame):
     def __init__():
         """Creates a dummy FieldWidget."""
     
-    def __init__(self, parent, controller, row, col):
-        """ Creates an instance of this object in the parent ttk frame in row row and column col. """
+    def __init__(self, parent, controller, row, col, valid_tagoptions: str = 'focus', default_tagoption: str | None = None):
+        """ Creates an instance of this object in the parent ttk frame in row row and column col. 
+            \nvalid_tagoptions: The list of options that will be selectable in this widget's dropdown window.
+        """
         super().__init__(master=parent, padding=5)
         self.controller = controller
         self.parent = parent
@@ -26,6 +28,9 @@ class FieldWidget(ttk.Frame):
 
         self.input_entry = ttk.Entry(self, textvariable=self.user_input_str)
 
+        self.tagoptions_key = valid_tagoptions
+        self.valid_tagoptions = TagOptions.possible_tag_lists[valid_tagoptions]
+        self.set_default_tagoption(default_tagoption)
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
@@ -98,14 +103,14 @@ class FieldWidget(ttk.Frame):
 
         # tags menu
         #FIXME: extend menubutton to create a class that has all the options for each of the categories
-        tag_option_button = ttk.Menubutton(self, text= '', textvariable= self.tag_str)
-        tag_option_button.grid(row=0, column=1)
+        self.tag_option_button = ttk.Menubutton(self, text= '', textvariable= self.tag_str)
+        self.tag_option_button.grid(row=0, column=1)
         tag_option_menu = Menu()
 
-        for i in TagOptions.focus_tag_options:
+        for i in self.valid_tagoptions:
             tag_option_menu.add_radiobutton(label=i, variable=self.tag_str)
         
-        tag_option_button['menu'] = tag_option_menu
+        self.tag_option_button['menu'] = tag_option_menu
 
 
         # value entry
@@ -113,13 +118,25 @@ class FieldWidget(ttk.Frame):
         self.input_entry.bind('<Return>', func=self.get_text_entry)
 
         # move up/down buttons
-        ttk.Button(self, text='Up', command=self.send_move_up_command).grid(row=0, column=0, sticky=E)
+        self.up_button = ttk.Button(self, text='Up', command=self.send_move_up_command)
+        self.up_button.grid(row=0, column=0, sticky=E)
 
         # delete button
-        ttk.Button(self, text = 'Delete', command=self.send_delete_command).grid(row=0, column=5, sticky=E) #command = delete_command
+        self.delete_button = ttk.Button(self, text = 'Delete', command=self.send_delete_command)
+        self.delete_button.grid(row=0, column=5, sticky=E) #command = delete_command
         # add child button
-        ttk.Button(self, text = 'Add Child', command=self.add_child_command).grid(row=0, column=4, sticky=E) #command = add_child_command
+        self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_child_command)
+        self.add_child_button.grid(row=0, column=4, sticky=E) #command = add_child_command
 
+    def set_default_tagoption(self, default_tagoption):
+        """Set the default value of this widget's menu field."""
+        self.tag_str.set(default_tagoption)
+        self.set_textbox_str(TagOptions.default_focus_options[default_tagoption])
+        self.update()
+
+    def set_textbox_str(self, text: str):
+        """Set the starting value of this widget's text entry box."""
+        self.user_input_str.set(text)
 
 if __name__ == "__main__":
     """Testing this class"""
