@@ -61,7 +61,7 @@ class FieldWidget(ttk.Frame):
         self.change_grid_position(row=(prev_row + 1), col=prev_col)
     
     def send_move_up_command(self):
-        self.controller.swap_up(self)
+        self.controller.swap_widget_up(self)
 
     def send_move_down_command(self):
         self.controller.move_down(self)
