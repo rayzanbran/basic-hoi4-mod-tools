@@ -105,4 +105,12 @@ class MainWindow(ttk.Frame):
         self.bottom_menu_bar = BottomMenuBar(parent=self, controller=self.childcontroller)
         self.bottom_menu_bar.grid(row=len(fieldwidget_list), column=0)
 
-        self.root.mainloop()
+        #self.root.mainloop()
+
+if __name__ == "__main__":
+    """Testing this class."""
+    root = Tk()
+    window = MainWindow(root)
+    fieldwidget_list.append(FieldWidget(window, window.childcontroller, row=6, col=0, template='character', default_tagoption='character'))
+    window.reapply_bottom_menu()
+    window.mainloop()

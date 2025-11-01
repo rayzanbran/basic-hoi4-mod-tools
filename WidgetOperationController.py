@@ -1,9 +1,13 @@
 from FieldWidget import *
 class WidgetOperationController:
     """Class for managing lists of Widgets.
-    TODO
+
     """
     def __init__(self, parent, control_list: list, main_window):
+        """Defines this object's parent, the list of widgets it will be managing,
+           and the top level window which has no parent (except the Tk root).
+        
+        """
         self.parent = parent
         self.control_list = control_list
         self.main_window = main_window
@@ -17,20 +21,24 @@ class WidgetOperationController:
         self.control_list[index2] = cached
     
     def add_widget_row_size(self, widget: FieldWidget):
-        """Adds another row to a fieldwidget."""
+        """Adds another row in the GUI to a fieldwidget."""
         import MainWindow
 
+        # Regrid the widget. FIXME: Does this actually do anything?
         prev_row = widget.grid_info()['row']
         prev_column = widget.grid_info()['column']
         #widget.grid_forget()
-        widget.change_grid_position(row=prev_row, col=prev_column, change_rowspan=1) 
-        widget.current_row_span += 1
-        widget.controller.move_all_down(widget) # Also need to tell the main window to move others down
-        # We need to keep reaching through until we hit the end
-        print(f"widget {widget} row size {widget.current_row_span}")
+        widget.change_grid_position(row=prev_row, col=prev_column, change_rowspan=1)
 
+        widget.current_row_span += 1
+        widget.controller.move_all_down(widget) # Need to tell this widget's parent to move the widgets below it down
+        # We need to keep reaching through until we hit the end
+        print(f"widget {widget} row size {widget.current_row_span}") #debug
+
+        # Then, keep going up the parentage chain and tell each successive parent
+        # to move all of its children down by 1. Recursive!!!
         widget = widget.parent
-        while not isinstance(widget, MainWindow.MainWindow): # As long as we are not operating on the Main Window...
+        while isinstance(widget, FieldWidget): # As long as we are not operating on the Main Window...
             prev_row = widget.grid_info()['row']
             prev_column = widget.grid_info()['column']
             #widget.grid_forget()
@@ -46,10 +54,11 @@ class WidgetOperationController:
         import MainWindow
         if not isinstance(widget, MainWindow.MainWindow): # The mainwindow should not be operated on because it is not a sub-container.
             widget.current_row_span -= pass_row_span
-            curr_row = widget.grid_info()['row']
+            #curr_row = widget.grid_info()['row']
             widget.change_grid_position()
 
     def calc_child_rows(self):
+        """Calculates the total number of rows the parent should occupy."""
         row = self.parent.current_row_span
         for controlled in self.control_list:
             if not controlled.childlist == None:
@@ -58,16 +67,17 @@ class WidgetOperationController:
         return row
 
 
-    def add_new_child(self, row_override: int | None = 0):
-        """Adds a new child to this group."""
-        self.add_widget_row_size(self.parent)
-
-        #FIXME: put this into its own function
-        child_type = 'focus'
-        if self.parent.tagoptions_key == 'focus':
-            child_type = 'effect'
-
-        self.control_list.append(FieldWidget(parent=self.parent, controller=self, row = self.parent.grid_info()['row'] + self.parent.current_row_span, col=0, valid_tagoptions=child_type))
+    def add_new_child(self, row_override: int | None = 0, child_type: str | None = 'focus', child_template: str | None = None, default_tagoption: str | None = None):
+        """Adds a new child to this group.\n
+           child_type: The name of the list of valid tag options for this widget.
+        """
+        # Create a FieldWidget to be positioned below the parent widget on the gui
+        self.control_list.append(FieldWidget(parent=self.parent, controller=self, 
+                                             row = self.parent.grid_info()['row'] + self.parent.current_row_span, 
+                                             col=0, valid_tagoptions=child_type, template=child_template, 
+                                             default_tagoption=default_tagoption))
+        
+        self.add_widget_row_size(self.parent) # Increase the portioned row span for the parent widget
         self.main_window.reapply_bottom_menu()
 
     def move_widget_up(self, widget: FieldWidget | None = None):
@@ -148,10 +158,14 @@ class WidgetOperationController:
         A dummy value will propagate to the top and should be removed.
         """
         for i in range(len(self.control_list) - 1, 0, -1):
-            if i > self.control_list.index(widget):
-                self.move_down(self.control_list[i])
-        if (len(self.control_list) > 1) and (self.control_list.index(widget) < len(self.control_list) - 1):
-            print(self.control_list.pop(self.control_list.index(widget) + 1)) # Clearing the dummy value
+            try:
+                if i > self.control_list.index(widget):
+                    self.move_down(self.control_list[i])
+                if (len(self.control_list) > 1) and (self.control_list.index(widget) < len(self.control_list) - 1):
+                    print(self.control_list.pop(self.control_list.index(widget) + 1)) # Clearing the dummy value
+            except Exception: # There will be an exception if we are adding children at the end of the list.
+                continue #TODO: add a calculator for the needed row?
+       
 
         print(self.control_list)
         self.main_window.reapply_bottom_menu()

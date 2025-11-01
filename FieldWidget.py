@@ -4,13 +4,10 @@ import TagOptions
 
 class FieldWidget(ttk.Frame):
     """ 
-    Self-contained container with a text entry box, descriptor tag, and movement and delete buttons.
+    Container with a text entry box, descriptor tag, and movement and delete buttons.
 
     """
-    def __init__():
-        """Creates a dummy FieldWidget."""
-    
-    def __init__(self, parent, controller, row, col, valid_tagoptions: str = 'focus', default_tagoption: str | None = None):
+    def __init__(self, parent, controller, row, col, valid_tagoptions: str = 'focus', default_tagoption: str | None = None, template: str | None = None):
         """ Creates an instance of this object in the parent ttk frame in row row and column col. 
             \nvalid_tagoptions: The list of options that will be selectable in this widget's dropdown window.
         """
@@ -28,15 +25,18 @@ class FieldWidget(ttk.Frame):
 
         self.input_entry = ttk.Entry(self, textvariable=self.user_input_str)
 
-        self.tagoptions_key = valid_tagoptions
+        # Set the tags that will be selectable in the dropdown list.
         self.valid_tagoptions = TagOptions.possible_tag_lists[valid_tagoptions]
-        self.set_default_tagoption(default_tagoption)
 
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
        
-        FieldWidget.create_widget(self, row=row, col=col)
+        self.create_widget(row=row, col=col, default_tagoption=default_tagoption)
+
+        # Apply a template if one has been defined.
+        if not template == None:
+         self.apply_fieldwidget_template(template)
         
     
     def change_grid_position(self, row: int | None = None, col: int | None = None, change_rowspan: int | None = None):
@@ -83,21 +83,35 @@ class FieldWidget(ttk.Frame):
         print(self.user_input_str.get())
     
     def add_child_command(self):
+        """Tells this FieldWidget's child controller to create a new child."""
+        from WidgetOperationController import WidgetOperationController
+
+        if self.childlist == None:
+            self.childlist = []
+            self.childcontroller = WidgetOperationController(self, self.childlist, self.controller.main_window)
+            self.childcontroller.add_new_child(row_override=1) # The first time, we need to tell it to place on next row
+        else:
+            self.childcontroller.add_new_child()
+            print(self.childlist)
+    
+    def add_template_child_command(self, child_type: str | None = None, child_template: str | None = None, default_tagoption: str | None = None):
+        """Allows creation of a new child with a specified type and/or template."""
         import WidgetOperationController
 
         if self.childlist == None:
             self.childlist = []
             self.childcontroller = WidgetOperationController.WidgetOperationController(self, self.childlist, self.controller.main_window)
-            self.childcontroller.add_new_child(row_override=1) # The first time, we need to tell it to place on next row
+            self.childcontroller.add_new_child(child_type=child_type, child_template=child_template, default_tagoption=default_tagoption)
         else:
-            self.childcontroller.add_new_child()
+            self.childcontroller.add_new_child(child_type=child_type, child_template=child_template, default_tagoption=default_tagoption)
             print(self.childlist)
-        
+
+
     def regrid(self):
         """Updates this widget's positioning"""
         self.change_grid_position()
 
-    def create_widget(self, row, col):
+    def create_widget(self, row, col, default_tagoption: str | None = None):
         """Creates the elements of this widget."""
         self.grid(row=row, column=col,padx=5, pady=5)
 
@@ -111,6 +125,10 @@ class FieldWidget(ttk.Frame):
             tag_option_menu.add_radiobutton(label=i, variable=self.tag_str)
         
         self.tag_option_button['menu'] = tag_option_menu
+
+        # Set the default tag option.
+        if not default_tagoption == None:
+            self.set_default_tagoption(default_tagoption)
 
 
         # value entry
@@ -130,13 +148,24 @@ class FieldWidget(ttk.Frame):
 
     def set_default_tagoption(self, default_tagoption):
         """Set the default value of this widget's menu field."""
+        print(f"Set default tagoption of {self} to {default_tagoption}")
         self.tag_str.set(default_tagoption)
-        self.set_textbox_str(TagOptions.default_focus_options[default_tagoption])
+        #self.set_textbox_str(TagOptions.default_focus_options[default_tagoption])
         self.update()
 
     def set_textbox_str(self, text: str):
+        #TODO: convert this into a tooltip
         """Set the starting value of this widget's text entry box."""
         self.user_input_str.set(text)
+
+    def apply_fieldwidget_template(self, template:str):
+        print("entered twilight zone")
+        """Apply a pre-defined template to this FieldWidget."""
+        import FieldWidgetTemplates
+        # Search FieldWidgetTemplates dictionary for the script to run in here
+        FieldWidgetTemplates.template_dict[template](self)
+
+        # run it?
 
 if __name__ == "__main__":
     """Testing this class"""

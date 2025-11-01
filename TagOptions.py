@@ -11,12 +11,6 @@ effect_block_tag_options = [
     'add_stability',
 ]
 
-# Dictionary of the possible tag lists.
-possible_tag_lists = {
-    'focus' : focus_tag_options,
-    'effect' : effect_block_tag_options
-}
-
 # Default tag options when starting a new focus block.
 default_focus_tags = ([
     'id',
@@ -26,6 +20,19 @@ default_focus_tags = ([
     'cost',
     'complete_effect',
 ])
+
+# TODO: go to hoi4 modding site and figure out what the rest of the tags are.
+default_character_tags = ([
+    'id',
+    'portrait'
+])
+
+# Dictionary of the possible tag lists.
+possible_tag_lists = {
+    'focus' : focus_tag_options,
+    'effect' : effect_block_tag_options,
+    'character' : default_character_tags
+}
 
 # Default text for default tag options when starting a new focus block.
 default_focus_text = [
