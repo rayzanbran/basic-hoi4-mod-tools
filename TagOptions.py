@@ -1,4 +1,4 @@
-"""Contains the tag options to be used in MenuButtons."""
+"""Contains the tag options to be used in FieldWidget MenuButtons."""
 focus_tag_options = [
     'example1',
     'example2',

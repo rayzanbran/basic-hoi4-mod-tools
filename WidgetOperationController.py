@@ -26,7 +26,10 @@ class WidgetOperationController:
         """Move a FieldWidget in the GUI by increment rows.\n
            increment should be negative to move up / positive to move down.
         """
-        widget.regrid(change_x=increment)
+        try:
+            widget.regrid(change_x=increment)
+        except Exception as e:
+            print(f"move_widget_x failed at {self.master}: {e}")
         self.main_window.reapply_bottom_menu() # Whenever a widget moves we should do this
     
     def move_widget_up(self, widget: FieldWidget, increment: int = 1):
@@ -54,29 +57,56 @@ class WidgetOperationController:
         # Operate on the GUI.
         self.move_widget_up(widget)
         self.move_widget_down(neighbor)
+    
+    def swap_widget_down(self, widget: FieldWidget):
+        """Swaps a widget with the one below it, in the GUI and the controlled list.\n
+           Should not be used on the bottom widget in the GUI.
+        """
+        # Check the index of the widget passed.
+
+        # Operate on the control list.
+        neighbor = self.control_list[self.control_list.index(widget) + 1]
+        self.swap(self.control_list.index(widget), self.control_list.index(neighbor))
+
+        # Operate on the GUI.
+        try:
+            self.move_widget_up(neighbor)
+        except Exception as e:
+            print(f"could not move {neighbor} up in swap_widget_down {widget}: {e}")
+        self.move_widget_down(widget)
 
     def add_widget(self):
-        """Adds a new FieldWidget to the menu"""
+        """Adds a new FieldWidget to the menu.
+           FIXME if there are parent blocks in the menu, the new field should be a child of the bottom-most parent.
+           Otherwise, should create a new parent block.
+        """
         self.main_window.bottom_menu_bar.grid_forget()
         self.control_list.append(FieldWidget(self.master, self, self.main_window.calc_row_len(), 0))
+        try:
+            self.master.regrid(change_rowspan=1)
+        except Exception as e:
+            print(f"add_widget could not change rowspan in {self.master}: {e}") # No problem if we can't
         self.main_window.reapply_bottom_menu()
 
     def move_all_down(self, widget: FieldWidget):
         """Moves all FieldWidgets below a specified Widget down."""
-        # First, create a dummy FieldWidget at the end of the list (will propagate to the index below widget and be deleted)
-        # This is ONLY for the satisfaction of the control list. The GUI is NOT a factor here 
-        # besides creating and destroying the visible object.
-        self.add_widget()
+        # First, create a dummy at the end of the list (will propagate to the index below widget and be deleted)
+        # This is ONLY for the satisfaction of the control list.
+        self.control_list.append('dummy')
         dummy = self.control_list[len(self.control_list) - 1] # now name it
 
         # Then, swap it up to the index below the specified widget
         while self.control_list.index(dummy) > self.control_list.index(widget) + 1:
-            self.swap_widget_up(dummy)
+            self.swap_widget_down(self.control_list[self.control_list.index(dummy) - 1])
 
         #  Finally, delete dummy.
         print(f"{self.master} childcontroller list: {self.control_list}")
         print(f"dummy object index: {self.control_list.index(dummy)}")
-        self.delete_fieldwidget(dummy)
+        while True: # Purge every single dummy
+            try:
+                self.control_list.remove(dummy)
+            except Exception:
+                break
 
     def add_new_child_widget(self, **kwargs):
         """Adds a new child of the parent FieldWidget to the control list and GUI.
@@ -101,9 +131,10 @@ class WidgetOperationController:
         # move every FieldWidget below it down
         operating_on: FieldWidget = self.master
         prev = None # save the previously-operated-on FieldWidget so we can tell its parent to move everything below it down
-        while not isinstance(operating_on, self.main_window.__class__):
-            # Portion another GUI row
-            operating_on.regrid(change_rowspan=1)
+        while True:
+            # Portion another GUI row if this is a FieldWidget
+            if isinstance(operating_on, FieldWidget):
+                operating_on.regrid(change_rowspan=1)
             # move every fieldwidget below this one in this widget's parent's control list down
             try:
             # Before we do anything, just check to make sure that there is actually anything below this widget
@@ -114,10 +145,13 @@ class WidgetOperationController:
                 print(f'could not move all fieldwidgets below {operating_on} down: {e}')
 
             prev = operating_on
-            operating_on = operating_on.master # Go up in the chain
-            pass
+            try:
+                operating_on = operating_on.master
+            except Exception:
+                break # Once we have reached the MainWindow, we can stop going up the tree.
 
-        #raise Exception("FIXME implement adding child FieldWidgets.")
+        self.main_window.reapply_bottom_menu()
+
     
 
 

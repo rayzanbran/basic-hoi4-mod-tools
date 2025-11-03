@@ -22,9 +22,12 @@ class MainWindow(ttk.Frame):
     
     def calc_row_len(self):
         """Calculates the row the bottom menu should be in."""
-        calcrow = 0
+        calcrow = 1
         for i in fieldwidget_list:
-            calcrow += i.current_row_span
+            try:
+                calcrow += i.current_row_span
+            except Exception: #Sometimes, we will encounter a str in fieldwidget_list...
+                calcrow += 0 
         print(f"bottom bar row len {calcrow}")
         return calcrow
     

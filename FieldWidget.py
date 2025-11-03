@@ -75,6 +75,7 @@ class FieldWidget(ttk.Frame):
            <b>Should only be called in regrid.</b>
         """
         self.current_row_span += change_rowspan
+        print(f"{self} rowspan {self.current_row_span}")
     
     def regrid(self, change_x: int | None = 0, change_y: int | None = 0, change_rowspan: int | None = 0):
         """Changes this FieldWidget's position and/or rowspan in the parent frame.\n
