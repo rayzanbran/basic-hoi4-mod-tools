@@ -1,4 +1,5 @@
 from FieldWidget import *
+from GlobalSettings import *
 class WidgetOperationController:
     """Class for managing lists of Widgets.
 
@@ -8,7 +9,7 @@ class WidgetOperationController:
            and the top level window which has no parent except the Tk root.
         
         """
-        self.parent = parent
+        self.master: FieldWidget = parent
         self.control_list = control_list
         self.main_window = main_window
     
@@ -25,12 +26,7 @@ class WidgetOperationController:
         """Move a FieldWidget in the GUI by increment rows.\n
            increment should be negative to move up / positive to move down.
         """
-        prev_row = widget.grid_info()['row']
-        prev_col = widget.grid_info()['column']
-
-        widget.grid_forget()
-        widget.change_grid_position(row=prev_row + increment, col=prev_col)
-
+        widget.regrid(change_x=increment)
         self.main_window.reapply_bottom_menu() # Whenever a widget moves we should do this
     
     def move_widget_up(self, widget: FieldWidget, increment: int = 1):
@@ -62,7 +58,7 @@ class WidgetOperationController:
     def add_widget(self):
         """Adds a new FieldWidget to the menu"""
         self.main_window.bottom_menu_bar.grid_forget()
-        self.control_list.append(FieldWidget(self.parent, self, self.main_window.calc_row_len(), 0))
+        self.control_list.append(FieldWidget(self.master, self, self.main_window.calc_row_len(), 0))
         self.main_window.reapply_bottom_menu()
 
     def move_all_down(self, widget: FieldWidget):
@@ -78,44 +74,55 @@ class WidgetOperationController:
             self.swap_widget_up(dummy)
 
         #  Finally, delete dummy.
-        print(f"{self.parent} childcontroller list: {self.control_list}")
+        print(f"{self.master} childcontroller list: {self.control_list}")
         print(f"dummy object index: {self.control_list.index(dummy)}")
         self.delete_fieldwidget(dummy)
-        #raise Exception("FIXME: implement deleting dummy at top of list")
 
+    def add_new_child_widget(self, **kwargs):
+        """Adds a new child of the parent FieldWidget to the control list and GUI.
+        
+        """
+        # Need to calculate the row it should appear in WITHIN ITS PARENT'S FRAME
+        self.control_list.append(FieldWidget(parent=self.master, controller=self, row=self.master.current_row_span, col=FWIDG_CHILD_DEF_COL, **kwargs))
+        self.main_window.reapply_bottom_menu()
 
+    def add_new_child(self, **kwargs):
+        """Add a new child of the parent FieldWidget.
+           Accepts all arguments accepted by FieldWidget.__init__() (and, by extension, those accepted by ttk.Frame)
+           \nHowever, kwargs should only contain ttk.Frame arguments.
+        """
+        print("FIXME add kwargs parsing in FieldWidget init")
 
+        # Create the FieldWidget and add it to the GUI and the controlled list.
+        self.add_new_child_widget(**kwargs)
 
+        # Now, for every parent all the way back up to the main window, we need to:
+        # Portion the parent another GUI row
+        # move every FieldWidget below it down
+        operating_on: FieldWidget = self.master
+        prev = None # save the previously-operated-on FieldWidget so we can tell its parent to move everything below it down
+        while not isinstance(operating_on, self.main_window.__class__):
+            # Portion another GUI row
+            operating_on.regrid(change_rowspan=1)
+            # move every fieldwidget below this one in this widget's parent's control list down
+            try:
+            # Before we do anything, just check to make sure that there is actually anything below this widget
+                if not operating_on.childcontroller.control_list[operating_on.childcontroller.control_list.index(prev) + 1] == None:
+                    operating_on.childcontroller.move_all_down(prev)
+            except Exception as e:
+                # if we can't do it, not that big of a deal. There is probably nothing below this FieldWidget anyway.
+                print(f'could not move all fieldwidgets below {operating_on} down: {e}')
+
+            prev = operating_on
+            operating_on = operating_on.master # Go up in the chain
+            pass
+
+        #raise Exception("FIXME implement adding child FieldWidgets.")
     
 
-    def add_widget_row_size(self, widget: FieldWidget):
-        """Portions another GUI row to a FieldWidget."""
-        import MainWindow
 
-        # Regrid the widget. FIXME: Does this actually do anything?
-        prev_row = widget.grid_info()['row']
-        prev_column = widget.grid_info()['column']
-        #widget.grid_forget()
-        widget.change_grid_position(row=prev_row, col=prev_column, change_rowspan=1)
 
-        widget.current_row_span += 1
-        widget.controller.move_all_down(widget) # Need to tell this widget's parent to move the widgets below it down
-        # We need to keep reaching through until we hit the end
-        print(f"widget {widget} row size {widget.current_row_span}") #debug
-
-        # Then, keep going up the parentage chain and tell each successive parent
-        # to move all of its children down by 1. Recursive!!!
-        widget = widget.parent
-        while isinstance(widget, FieldWidget): # As long as we are not operating on the Main Window...
-            prev_row = widget.grid_info()['row']
-            prev_column = widget.grid_info()['column']
-            #widget.grid_forget()
-            widget.change_grid_position(row=prev_row, col=prev_column, change_rowspan=1) # Regrid this widget with a rowspan that is one larger.
-            widget.current_row_span += 1
-            widget.controller.move_all_down(widget) # Also need to tell the parent window to move down children below this
-
-            print(f"widget {widget} row size {widget.current_row_span}")
-            widget = widget.parent # Keep going up the parent chain and doing this again.
+    ###---FIXME EVERYTHING BELOW THIS HAS NOT BEEN REWRITTEN FIXME---###--------------------------------------
 
     def decrease_widget_row_size(self, widget: FieldWidget, pass_row_span: int = 1):
         """Decrements the row span of this widget. Simple because the space is already reclaimed by the grid."""
@@ -123,30 +130,16 @@ class WidgetOperationController:
         if not isinstance(widget, MainWindow.MainWindow): # The mainwindow should not be operated on because it is not a sub-container.
             widget.current_row_span -= pass_row_span
             #curr_row = widget.grid_info()['row']
-            widget.change_grid_position()
+            widget.regrid()
 
     def calc_child_rows(self):
         """Calculates the total number of rows the parent should occupy."""
-        row = self.parent.current_row_span
+        row = self.master.current_row_span
         for controlled in self.control_list:
             if not controlled.childlist == None:
                 row += controlled.childcontroller.calc_child_rows()
         
         return row
-
-
-    def add_new_child(self, row_override: int | None = 0, child_type: str | None = 'focus', child_template: str | None = None, default_tagoption: str | None = None):
-        """Adds a new child to this group.\n
-           child_type: The name of the list of valid tag options for this widget.
-        """
-        # Create a FieldWidget to be positioned below the parent widget on the gui
-        self.control_list.append(FieldWidget(parent=self.parent, controller=self, 
-                                             row = self.parent.grid_info()['row'] + self.parent.current_row_span, 
-                                             col=0, valid_tagoptions=child_type, template=child_template, 
-                                             default_tagoption=default_tagoption))
-        
-        self.add_widget_row_size(self.parent) # Increase the portioned row span for the parent widget
-        self.main_window.reapply_bottom_menu()
 
     def regrid_all(self):
         for widget in self.control_list:
@@ -167,7 +160,7 @@ class WidgetOperationController:
             # Perform the actions of this function on each of the widget parent childcontrollers:
             # Decrease the size of the child container and move up all the containers below it.
             prev = thiswidget
-            thiswidget = thiswidget.parent
+            thiswidget: FieldWidget = thiswidget.master
             thiswidget.childcontroller.decrease_widget_row_size(thiswidget, pass_row_span=deleted_span)
             unit_index = thiswidget.childcontroller.control_list.index(prev)
             print(f"unit_index {unit_index}")
@@ -176,7 +169,7 @@ class WidgetOperationController:
                 for i in range(unit_index + 1, len(thiswidget.childcontroller.control_list)):
                     curr_row = thiswidget.childcontroller.control_list[i].grid_info()['row']
                     print(f"current row {curr_row} will be {curr_row - deleted_span}")
-                    thiswidget.childcontroller.control_list[i].change_grid_position(row=curr_row - deleted_span)   
+                    thiswidget.childcontroller.control_list[i].regrid(row=curr_row - deleted_span)   
                     print(f"new curr_row = {thiswidget.childcontroller.control_list[i].grid_info()['row']}")         
         
         

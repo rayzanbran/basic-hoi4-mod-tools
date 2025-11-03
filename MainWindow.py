@@ -96,14 +96,21 @@ class MainWindow(ttk.Frame):
 
 
         # Add the default options
+        """
         for i in range(len(TagOptions.default_focus_options.keys())):
             tag = TagOptions.default_focus_tags[i]
             fieldwidget_list.append(FieldWidget(self, self.childcontroller, row=i, col=0, default_tagoption=tag))
+        """
 
-        # Add in the bottom bar options (wrap in their own class)
-        # Add new button
         self.bottom_menu_bar = BottomMenuBar(parent=self, controller=self.childcontroller)
         self.bottom_menu_bar.grid(row=len(fieldwidget_list), column=0)
+
+        # add the parent of the entire block
+        fieldwidget_list.append(FieldWidget(self, self.childcontroller, 0, 0, template='focus', default_tagoption='focus'))
+        self.reapply_bottom_menu()
+        # Add in the bottom bar options (wrap in their own class)
+        # Add new button
+        
 
         #self.root.mainloop()
 
