@@ -9,7 +9,8 @@ def template_focus_block_main(self: FieldWidget):
        as children of a FieldWidget.
     """
     for key in default_focus_tags:
-        self.add_template_child_command(child_type=FWIDG_FOCUS_BLOCK, default_tagoption=key)
+        if TAG_LIST_IGNORE_CHARACTER not in key: # If we should not ignore this one
+            self.add_template_child_command(child_type=FWIDG_FOCUS_BLOCK, default_tagoption=key)
 
     pass
 

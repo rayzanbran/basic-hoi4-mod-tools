@@ -20,3 +20,6 @@ FWIDG_KEY_ENTRY = 'keyentry'
 FWIDG_TAG_SELECT = 'tagselector'
 
 POSSIBLE_FIELDWIDGET_ELS = (FWIDG_ADD, FWIDG_DEL, FWIDG_UP, FWIDG_KEY_ENTRY, FWIDG_TAG_SELECT)
+
+# Template Settings
+TAG_LIST_IGNORE_CHARACTER = '-' # The character that will cause a tag to be ignored and not generate a child in a template

@@ -20,7 +20,8 @@ default_focus_tags = ([
     'x',
     'y',
     'cost',
-    'complete_effect',
+    '---BELOW WILL CREATE CHILD BLOCKS---',
+    'complete_effect'
 ])
 
 # TODO: go to hoi4 modding site and figure out what the rest of the tags are.
@@ -64,5 +65,5 @@ def check_valid_parent(tagoption):
 
 # Sets up the dictionary for default focus options by combining the tags with the text.
 default_focus_options = {}
-for i in range(len(default_focus_tags)):
-    default_focus_options[default_focus_tags[i]] = default_focus_text[i]
+#for i in range(len(default_focus_tags)):
+    #default_focus_options[default_focus_tags[i]] = default_focus_text[i]

@@ -30,7 +30,7 @@ class FieldWidget(ttk.Frame):
         if 'child_template' in kwargs:
             self.template = kwargs.pop('child_template')
         
-        # Disable buttons that should be disabled
+        # Set the variables deciding the states of each of the elements in this FieldWidget
         if not disabled_elements == None:
             self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled, self.tag_select_disabled, self.key_entry_disabled = self.parse_disabled_elements(disabled_elements)
         else:
@@ -246,12 +246,13 @@ class FieldWidget(ttk.Frame):
     def apply_fieldwidget_template(self, template:str):
         print("entered twilight zone")
         """Apply a pre-defined template to this FieldWidget."""
-        self.valid_tagoptions = template
+        self.valid_tagoptions = template #FIXME is this line correct?
         import FieldWidgetTemplates
-        # Search FieldWidgetTemplates dictionary for the script to run in here
-        FieldWidgetTemplates.template_dict[template](self)
-
-        # run it?
+        # Search FieldWidgetTemplates dictionary for the script to run on this instance
+        try:
+            FieldWidgetTemplates.template_dict[template](self)
+        except Exception as e:
+            print(f"could not apply template {template} to {self}: {e}")
     
     def enable_button(self, button: ttk.Button):
         """Enables the specified Button within this FieldWidget."""
