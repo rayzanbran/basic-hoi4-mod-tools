@@ -1,5 +1,4 @@
-- create some kind of a "template" system for fieldWidgets with prefilled values
+- make selection of certain FieldWidget options automatically create children (ex. complete_effect automatically creates a child)
 - once above is done:
 -- add dynamically updating output preview window
--- clean up fieldWidget code to allow child creation on instantiation
 - make the gui look nicer
