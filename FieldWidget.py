@@ -9,13 +9,14 @@ class FieldWidget(ttk.Frame):
     Container with a text entry box, descriptor tag, and movement and delete buttons.
 
     """
-    def __init__(self, parent, controller, row, col, valid_tagoptions: str = 'focus', default_tagoption: str | None = None, template: str | None = None, **kwargs):
+    def __init__(self, parent, controller, row, col, valid_tagoptions: str = 'focus', default_tagoption: str | None = None, template: str | None = None, disabled_buttons: tuple | None = None, **kwargs):
         """Creates an instance of this object in the parent ttk frame in row row and column col.
            Accepts same arguments as ttk.Frame.\n
            default_tagoption: the option of the dropdown menu that will be selected by default.\n
            valid_tagoptions: The list of options that will be selectable in this widget's dropdown window.\n
            template: the script (usually creating children) defined in FieldWidgetTemplates.py
            that will be run on this FieldWidget after creation.\n
+           disabled_buttons: which of the buttons on this FieldWidget will NOT be clickable
            **kwargs: any keyworded arguments that can go to ttk.Frame.
 
         """
@@ -27,6 +28,11 @@ class FieldWidget(ttk.Frame):
             self.valid_tagoptions = kwargs.pop('child_type')
         if 'child_template' in kwargs:
             self.template = kwargs.pop('child_template')
+        
+        if not disabled_buttons == None:
+            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled = self.parse_disabled_buttons(disabled_buttons)
+        else:
+            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled = 'normal', 'normal', 'normal'
 
         super().__init__(master=parent, **kwargs)
         #self.master = parent
@@ -58,6 +64,25 @@ class FieldWidget(ttk.Frame):
         # Apply a template if one has been defined.
         if not self.template == None:
          self.apply_fieldwidget_template(self.template)
+        
+    def parse_disabled_buttons(self, inputuple: tuple):
+        """Parses the disabled buttons string tuple and returns a tuple of strings that will be given to the ttk constructors."""
+        if 'add' in inputuple:
+            add_button_disabled = 'disabled'
+        else:
+            add_button_disabled = 'normal'
+        
+        if 'del' in inputuple:
+            delete_button_disabled = 'disabled'
+        else:
+            delete_button_disabled = 'normal'
+        
+        if 'up' in inputuple:
+            up_button_disabled = 'disabled'
+        else:
+            up_button_disabled = 'normal'
+        
+        return ([add_button_disabled, delete_button_disabled, up_button_disabled])
     
     def move(self, change_x: int | None = 0, change_y: int | None = 0):
         """Moves this FieldWidget on the GUI by change_x rows and change_y columns.\n
@@ -163,13 +188,16 @@ class FieldWidget(ttk.Frame):
 
         # move up/down buttons
         self.up_button = ttk.Button(self, text='Up', command=self.send_move_up_command)
+        self.up_button.config(state=self.up_button_disabled)
         self.up_button.grid(row=0, column=0, sticky=FWIDG_EL_STICK_DIR)
 
         # delete button
         self.delete_button = ttk.Button(self, text = 'Delete', command=self.send_delete_command)
+        self.delete_button.config(state=self.delete_button_disabled)
         self.delete_button.grid(row=0, column=5, sticky=FWIDG_EL_STICK_DIR) #command = delete_command
         # add child button
         self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_child_command)
+        self.add_child_button.config(state=self.add_button_disabled)
         self.add_child_button.grid(row=0, column=4, sticky=FWIDG_EL_STICK_DIR) #command = add_child_command
 
     def set_default_tagoption(self, default_tagoption):
