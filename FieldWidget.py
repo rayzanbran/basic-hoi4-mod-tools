@@ -21,7 +21,8 @@ class FieldWidget(ttk.Frame):
 
         """
         print(kwargs)
-        # Parse kwargs #FIXME ugh fix this I tried to make it work earlier by brute forcing it
+
+        # Parse kwargs
         self.valid_tagoptions = valid_tagoptions
         self.template = template
         if 'child_type' in kwargs:
@@ -29,15 +30,18 @@ class FieldWidget(ttk.Frame):
         if 'child_template' in kwargs:
             self.template = kwargs.pop('child_template')
         
+        # Disable buttons that should be disabled
         if not disabled_buttons == None:
             self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled = self.parse_disabled_buttons(disabled_buttons)
         else:
             self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled = 'normal', 'normal', 'normal'
 
+
         super().__init__(master=parent, **kwargs)
         #self.master = parent
         self.controller = controller
         print(f"master of {self} in {row}, {col}: {self.master}")
+
         # Setting up StringVars
         self.user_input_str = StringVar()
         self.tag_str = StringVar()
@@ -66,21 +70,21 @@ class FieldWidget(ttk.Frame):
          self.apply_fieldwidget_template(self.template)
         
     def parse_disabled_buttons(self, inputuple: tuple):
-        """Parses the disabled buttons string tuple and returns a tuple of strings that will be given to the ttk constructors."""
-        if 'add' in inputuple:
-            add_button_disabled = 'disabled'
+        """Parses the disabled buttons string tuple and returns a tuple of ttk states that will be given to the ttk constructors."""
+        if FWIDG_ADD in inputuple:
+            add_button_disabled = DISABLED
         else:
-            add_button_disabled = 'normal'
+            add_button_disabled = NORMAL
         
-        if 'del' in inputuple:
-            delete_button_disabled = 'disabled'
+        if FWIDG_DEL in inputuple:
+            delete_button_disabled = DISABLED
         else:
-            delete_button_disabled = 'normal'
+            delete_button_disabled = NORMAL
         
-        if 'up' in inputuple:
-            up_button_disabled = 'disabled'
+        if FWIDG_UP in inputuple:
+            up_button_disabled = DISABLED
         else:
-            up_button_disabled = 'normal'
+            up_button_disabled = NORMAL
         
         return ([add_button_disabled, delete_button_disabled, up_button_disabled])
     

@@ -13,6 +13,7 @@ class BottomMenuBar(ttk.Frame):
         #Buttons
         self.copy_button = ttk.Button(self, text='copy output')
         self.add_new_field_button = ttk.Button(self, text='Add new field', command=self.send_add_new_field_command)
+        self.add_new_field_button.config(state=DISABLED) #TODO disabling this for now, no longer needed?
         self.preview_button = ttk.Button(self, text='preview output', command=self.controller.main_window.process)
 
         self.create_bottom_frame()
