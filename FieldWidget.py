@@ -36,6 +36,9 @@ class FieldWidget(ttk.Frame):
         else:
             self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled, self.tag_select_disabled, self.key_entry_disabled = NORMAL, NORMAL, NORMAL, NORMAL, NORMAL
 
+        # Check if this block is a valid parent; if not, disable the add child button.
+        if not TagOptions.check_valid_parent(default_tagoption):
+            self.add_button_disabled = DISABLED
 
         super().__init__(master=parent, **kwargs)
         #self.master = parent
@@ -143,14 +146,30 @@ class FieldWidget(ttk.Frame):
         if self.childlist == None: # If child infrastructure has not been initialized yet, initialize it
             self.childlist = []
             self.childcontroller = WidgetOperationController(self, self.childlist, self.controller.main_window)
-            self.childcontroller.add_new_child() # The first time, we need to tell it to place on next row
+            self.childcontroller.add_new_child(child_type=self.valid_tagoptions) # The first time, we need to tell it to place on next row
         else:
-            self.childcontroller.add_new_child()
+            self.childcontroller.add_new_child(child_type=self.valid_tagoptions)
             print(self.childlist)
+
+    def get_type_of_children(self):
+        """Returns a str child_type, which is dependent on the parent's default_tagoptions
+
+        """
+
+
     
     def add_template_child_command(self, child_type: str | None = None, child_template: str | None = None, default_tagoption: str | None = None):
-        """Allows creation of a new child with a specified type and/or template."""
+        """Allows creation of a new child with a specified type and/or template.\n
+            If no type is specified, one will be located with get_template_for_children
+            """
         import WidgetOperationController
+
+        child_type = self.tag_str.get()
+        try:
+            example = TagOptions.possible_tag_lists(child_type)
+        except Exception as e:
+            print(f"Could not set {self} child_type to {self.tag_str.get()}, setting it to {self.valid_tagoptions}.")
+            child_type = self.valid_tagoptions
 
         if self.childlist == None:
             self.childlist = []
@@ -159,6 +178,14 @@ class FieldWidget(ttk.Frame):
         else:
             self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption)
             print(self.childlist)
+
+    def check_tag_val(self):
+        """Check the currently selected tag value and enable/disable the appropriate fields."""
+        tag_val = self.tag_str.get()
+        if TagOptions.check_valid_parent(tag_val):
+            self.enable_button(self.add_child_button)
+        else:
+            self.disable_button(self.add_child_button)
 
     def create_widget(self, row, col, default_tagoption: str | None = None):
         """Grids this FieldWidget in the parent frame at row,col and creates its elements.\n
@@ -172,10 +199,11 @@ class FieldWidget(ttk.Frame):
         self.tag_option_button = ttk.Menubutton(self, text= '', textvariable= self.tag_str)
         self.tag_option_button.grid(row=0, column=1)
         tag_option_menu = Menu()
+        #tag_option_menu.add_command(command=self.check_tag_val)
         self.tag_option_button.config(state=self.key_entry_disabled)
 
         for i in self.valid_tagoptions_list:
-            tag_option_menu.add_radiobutton(label=i, variable=self.tag_str)
+            tag_option_menu.add_radiobutton(label=i, variable=self.tag_str, command=self.check_tag_val)
         
         self.tag_option_button['menu'] = tag_option_menu
 
@@ -199,7 +227,7 @@ class FieldWidget(ttk.Frame):
         self.delete_button.config(state=self.delete_button_disabled)
         self.delete_button.grid(row=0, column=5, sticky=FWIDG_EL_STICK_DIR) #command = delete_command
         # add child button
-        self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_child_command)
+        self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_template_child_command)
         self.add_child_button.config(state=self.add_button_disabled)
         self.add_child_button.grid(row=0, column=4, sticky=FWIDG_EL_STICK_DIR) #command = add_child_command
 
@@ -218,11 +246,20 @@ class FieldWidget(ttk.Frame):
     def apply_fieldwidget_template(self, template:str):
         print("entered twilight zone")
         """Apply a pre-defined template to this FieldWidget."""
+        self.valid_tagoptions = template
         import FieldWidgetTemplates
         # Search FieldWidgetTemplates dictionary for the script to run in here
         FieldWidgetTemplates.template_dict[template](self)
 
         # run it?
+    
+    def enable_button(self, button: ttk.Button):
+        """Enables the specified Button within this FieldWidget."""
+        button.config(state=NORMAL)
+    
+    def disable_button(self, button: ttk.Button):
+        """Disables the specified Button within this FieldWidget."""
+        button.config(state=DISABLED)
 
 if __name__ == "__main__":
     from WidgetOperationController import WidgetOperationController

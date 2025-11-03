@@ -6,7 +6,7 @@ FWIDG_CHILD_DEF_COL = 0 # The default column in which FieldWidget children will 
 
 # Possible FieldWidget Types
 FWIDG_FOCUS_BLOCK = 'focus'
-FWIDG_EFFECT_BLOCK = 'effect'
+FWIDG_EFFECT_BLOCK = 'complete_effect'
 
 # Possible FieldWidget Elements
 # Buttons

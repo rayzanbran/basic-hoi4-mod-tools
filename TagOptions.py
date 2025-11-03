@@ -1,3 +1,5 @@
+from GlobalSettings import *
+
 """Contains the tag options to be used in FieldWidget MenuButtons."""
 focus_tag_options = [
     'example1',
@@ -29,8 +31,8 @@ default_character_tags = ([
 
 # Dictionary of the possible tag lists.
 possible_tag_lists = {
-    'focus' : focus_tag_options,
-    'effect' : effect_block_tag_options,
+    FWIDG_FOCUS_BLOCK : focus_tag_options,
+    FWIDG_EFFECT_BLOCK : effect_block_tag_options,
     'character' : default_character_tags
 }
 
@@ -43,6 +45,22 @@ default_focus_text = [
     '-1',
     'add child below with effects'
 ]
+
+parent_to_child_type = {
+
+
+}
+
+def check_valid_parent(tagoption):
+    """Checks if a tag option qualifies a FieldWidget to be a parent.
+       Returns true or False.
+
+    """
+    try:
+        test = possible_tag_lists[tagoption]
+        return True
+    except Exception:
+        return False
 
 # Sets up the dictionary for default focus options by combining the tags with the text.
 default_focus_options = {}
