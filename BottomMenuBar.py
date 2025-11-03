@@ -1,19 +1,27 @@
 from tkinter import *
 from tkinter import ttk
+from WidgetOperationController import WidgetOperationController
 
 class BottomMenuBar(ttk.Frame):
     """ Wrapper frame for the bottom menu bar options. """
     def send_add_new_field_command(self):
-        self.controller.add_widget()
+        """Tells the controller below the MainWindow controller to add a new FieldWidget with the same type as the top block.
+           \nIf this fails, adds a new FieldWidget to the MainWindow
+        """
+        try:
+            self.controller.control_list[0].add_template_child_command(child_type=self.controller.control_list[0].valid_tagoptions)
+        except Exception as e:
+            print(f"Could not add a FieldWidget to the first block in MainWindow: {e}\n ...Adding it to MainWindow instead.")
+            self.controller.add_widget()
 
     def __init__(self, parent, controller):
         super().__init__(parent, padding=5)
-        self.controller = controller
+        self.controller: WidgetOperationController = controller
 
         #Buttons
         self.copy_button = ttk.Button(self, text='copy output')
         self.add_new_field_button = ttk.Button(self, text='Add new field', command=self.send_add_new_field_command)
-        self.add_new_field_button.config(state=DISABLED) #TODO disabling this for now, no longer needed?
+        #self.add_new_field_button.config(state=DISABLED) #TODO disabling this for now, no longer needed?
         self.preview_button = ttk.Button(self, text='preview output', command=self.controller.main_window.process)
 
         self.create_bottom_frame()

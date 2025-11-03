@@ -9,14 +9,14 @@ class FieldWidget(ttk.Frame):
     Container with a text entry box, descriptor tag, and movement and delete buttons.
 
     """
-    def __init__(self, parent, controller, row, col, valid_tagoptions: str = 'focus', default_tagoption: str | None = None, template: str | None = None, disabled_buttons: tuple | None = None, **kwargs):
+    def __init__(self, parent, controller, row, col, valid_tagoptions: str = FWIDG_FOCUS_BLOCK, default_tagoption: str | None = None, template: str | None = None, disabled_elements: tuple | None = None, **kwargs):
         """Creates an instance of this object in the parent ttk frame in row row and column col.
            Accepts same arguments as ttk.Frame.\n
            default_tagoption: the option of the dropdown menu that will be selected by default.\n
            valid_tagoptions: The list of options that will be selectable in this widget's dropdown window.\n
            template: the script (usually creating children) defined in FieldWidgetTemplates.py
            that will be run on this FieldWidget after creation.\n
-           disabled_buttons: which of the buttons on this FieldWidget will NOT be clickable
+           disabled_elements: which of the elements on this FieldWidget will not be interactable.
            **kwargs: any keyworded arguments that can go to ttk.Frame.
 
         """
@@ -31,15 +31,15 @@ class FieldWidget(ttk.Frame):
             self.template = kwargs.pop('child_template')
         
         # Disable buttons that should be disabled
-        if not disabled_buttons == None:
-            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled = self.parse_disabled_buttons(disabled_buttons)
+        if not disabled_elements == None:
+            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled, self.tag_select_disabled, self.key_entry_disabled = self.parse_disabled_elements(disabled_elements)
         else:
-            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled = 'normal', 'normal', 'normal'
+            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled, self.tag_select_disabled, self.key_entry_disabled = NORMAL, NORMAL, NORMAL, NORMAL, NORMAL
 
 
         super().__init__(master=parent, **kwargs)
         #self.master = parent
-        self.controller = controller
+        self.controller: WidgetOperationController = controller
         print(f"master of {self} in {row}, {col}: {self.master}")
 
         # Setting up StringVars
@@ -55,7 +55,7 @@ class FieldWidget(ttk.Frame):
         self.input_entry = ttk.Entry(self, textvariable=self.user_input_str) # FIXME Why is this an instance variable?
 
         # Set the tags that will be selectable in the dropdown list.
-        self.valid_tagoptions = TagOptions.possible_tag_lists[self.valid_tagoptions]
+        self.valid_tagoptions_list = TagOptions.possible_tag_lists[self.valid_tagoptions]
 
         # Weight column expansion 
         # FIXME change weights?
@@ -69,24 +69,21 @@ class FieldWidget(ttk.Frame):
         if not self.template == None:
          self.apply_fieldwidget_template(self.template)
         
-    def parse_disabled_buttons(self, inputuple: tuple):
-        """Parses the disabled buttons string tuple and returns a tuple of ttk states that will be given to the ttk constructors."""
-        if FWIDG_ADD in inputuple:
-            add_button_disabled = DISABLED
-        else:
-            add_button_disabled = NORMAL
+    def parse_disabled_elements(self, inputuple: tuple):
+        """Parses the disabled buttons string tuple and returns a tuple of ttk states that will be given to ttk elements config.
         
-        if FWIDG_DEL in inputuple:
-            delete_button_disabled = DISABLED
-        else:
-            delete_button_disabled = NORMAL
+        """
+        add_button_disabled = DISABLED if FWIDG_ADD in inputuple else NORMAL
         
-        if FWIDG_UP in inputuple:
-            up_button_disabled = DISABLED
-        else:
-            up_button_disabled = NORMAL
+        delete_button_disabled = DISABLED if FWIDG_DEL in inputuple else NORMAL
         
-        return ([add_button_disabled, delete_button_disabled, up_button_disabled])
+        up_button_disabled = DISABLED if FWIDG_UP in inputuple else NORMAL
+        
+        key_entry_disabled = DISABLED if FWIDG_KEY_ENTRY in inputuple else NORMAL
+
+        tag_select_disabled = DISABLED if FWIDG_TAG_SELECT in inputuple else NORMAL
+        
+        return ([add_button_disabled, delete_button_disabled, up_button_disabled, key_entry_disabled, tag_select_disabled])
     
     def move(self, change_x: int | None = 0, change_y: int | None = 0):
         """Moves this FieldWidget on the GUI by change_x rows and change_y columns.\n
@@ -175,8 +172,9 @@ class FieldWidget(ttk.Frame):
         self.tag_option_button = ttk.Menubutton(self, text= '', textvariable= self.tag_str)
         self.tag_option_button.grid(row=0, column=1)
         tag_option_menu = Menu()
+        self.tag_option_button.config(state=self.key_entry_disabled)
 
-        for i in self.valid_tagoptions:
+        for i in self.valid_tagoptions_list:
             tag_option_menu.add_radiobutton(label=i, variable=self.tag_str)
         
         self.tag_option_button['menu'] = tag_option_menu
@@ -189,6 +187,7 @@ class FieldWidget(ttk.Frame):
         # value entry setup
         self.input_entry.grid(row=0, column=2, sticky=FWIDG_EL_STICK_DIR)
         self.input_entry.bind('<Return>', func=self.get_text_entry)
+        self.input_entry.config(state=self.tag_select_disabled)
 
         # move up/down buttons
         self.up_button = ttk.Button(self, text='Up', command=self.send_move_up_command)

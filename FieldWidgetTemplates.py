@@ -1,26 +1,29 @@
-import FieldWidget
+from FieldWidget import FieldWidget
 from TagOptions import *
+from GlobalSettings import *
 """Template scripts for FieldWidgets that create their children.
    Should be called by a FieldWidget object in the apply_fieldwidget_template method
 """
-def template_focus_block_main(self: FieldWidget.FieldWidget):
+def template_focus_block_main(self: FieldWidget):
     """Sets up Fieldwidgets with the minimum necessary fields for a focus block -
        as children of a FieldWidget.
     """
     for key in default_focus_tags:
-        self.add_template_child_command(child_type='focus', default_tagoption=key)
+        self.add_template_child_command(child_type=FWIDG_FOCUS_BLOCK, default_tagoption=key)
 
     pass
 
+def template_effect_block(self: FieldWidget):
+    """Adds an empty child FieldWidget to this FieldWidget."""
 
-def template_character_block(self: FieldWidget.FieldWidget):
+def template_character_block(self: FieldWidget):
     """Sets up a Fieldwidget with children for creating a character"""
     for key in default_character_tags:
         self.add_template_child_command(child_type='character', default_tagoption=key)
 
     pass
 
-def template_timed_idea_block(self:FieldWidget.FieldWidget):
+def template_timed_idea_block(self:FieldWidget):
     """Sets up a FieldWidget for creating a timed idea block."""
 
     pass

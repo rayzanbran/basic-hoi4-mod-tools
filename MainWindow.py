@@ -109,7 +109,7 @@ class MainWindow(ttk.Frame):
         self.bottom_menu_bar.grid(row=len(fieldwidget_list), column=0)
 
         # add the parent of the entire block
-        fieldwidget_list.append(FieldWidget(self, self.childcontroller, 0, 0, template='focus', default_tagoption='focus', disabled_buttons=FWIDG_DEL))
+        fieldwidget_list.append(FieldWidget(self, self.childcontroller, 0, 0, template=FWIDG_FOCUS_BLOCK, default_tagoption=FWIDG_FOCUS_BLOCK, disabled_elements=(FWIDG_DEL, FWIDG_TAG_SELECT)))
         self.reapply_bottom_menu()
         # Add in the bottom bar options (wrap in their own class)
         # Add new button
