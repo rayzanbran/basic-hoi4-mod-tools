@@ -203,7 +203,7 @@ class WidgetOperationController:
                 for i in range(unit_index + 1, len(thiswidget.childcontroller.control_list)):
                     curr_row = thiswidget.childcontroller.control_list[i].grid_info()['row']
                     print(f"current row {curr_row} will be {curr_row - deleted_span}")
-                    thiswidget.childcontroller.control_list[i].regrid(row=curr_row - deleted_span)   
+                    thiswidget.childcontroller.control_list[i].regrid(change_x= -1 * deleted_span)   
                     print(f"new curr_row = {thiswidget.childcontroller.control_list[i].grid_info()['row']}")         
         
         
