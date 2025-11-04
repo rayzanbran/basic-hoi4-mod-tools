@@ -1,4 +1,4 @@
-Hoi4 Mod Tools: Useful Apps to simplify making hoi4 mods.
+Hoi4 Mod Tools: Useful Apps to simplify making hoi4 mods.\n
 FEATURES:
 - National Focus block builder
 
