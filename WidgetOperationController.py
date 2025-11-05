@@ -1,3 +1,5 @@
+from guicomponents import *
+from guicomponents import ContentWindow
 from guicomponents.FieldWidget import *
 from GlobalSettings import *
 class WidgetOperationController:
@@ -148,7 +150,7 @@ class WidgetOperationController:
             try:
                 operating_on = operating_on.master
             except Exception:
-                break # Once we have reached the MainWindow, we can stop going up the tree.
+                break # Once we have reached the WidgetWindow, we can stop going up the tree.
 
         self.main_window.reapply_bottom_menu()
 
@@ -160,8 +162,7 @@ class WidgetOperationController:
 
     def decrease_widget_row_size(self, widget: FieldWidget, pass_row_span: int = 1):
         """Decrements the row span of this widget. Simple because the space is already reclaimed by the grid."""
-        import MainWindow
-        if not isinstance(widget, MainWindow.MainWindow): # The mainwindow should not be operated on because it is not a sub-container.
+        if not isinstance(widget, ContentWindow.WidgetWindow): # The WidgetWindow should not be operated on because it is not a sub-container.
             widget.current_row_span -= pass_row_span
             #curr_row = widget.grid_info()['row']
             widget.regrid()
@@ -183,14 +184,13 @@ class WidgetOperationController:
 
     def delete_fieldwidget(self, widget: FieldWidget, move_others_up: bool | None = True):
         """Deletes a FieldWidget and moves up the widgets below it on the GUI if move_others_up."""
-        import MainWindow
         thiswidget = widget
         prev = widget
         deleted_span = widget.current_row_span
         print(f"deleted span {deleted_span}")
         widget.delete_widget()
 
-        while not isinstance(thiswidget, MainWindow.MainWindow): # If this is a child
+        while not isinstance(thiswidget, ContentWindow.WidgetWindow): # If this is a child
             # Perform the actions of this function on each of the widget parent childcontrollers:
             # Decrease the size of the child container and move up all the containers below it.
             prev = thiswidget

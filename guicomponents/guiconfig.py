@@ -1,0 +1,1 @@
+"""Constants for how the GUI will be configured."""

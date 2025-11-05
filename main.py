@@ -1,5 +1,7 @@
 """main script for running hoi4 tools"""
-from MainWindow import *
+from tkinter import *
+from guicomponents.ContentWindow import WidgetWindow
 if __name__ == "__main__":
     root = Tk()
-    MainWindow(root).mainloop()
+    widget_window = WidgetWindow(root)
+    widget_window.mainloop()

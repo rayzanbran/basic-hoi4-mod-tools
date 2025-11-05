@@ -5,13 +5,13 @@ from WidgetOperationController import WidgetOperationController
 class BottomMenuBar(ttk.Frame):
     """ Wrapper frame for the bottom menu bar options. """
     def send_add_new_field_command(self):
-        """Tells the controller below the MainWindow controller to add a new FieldWidget with the same type as the top block.
-           \nIf this fails, adds a new FieldWidget to the MainWindow
+        """Tells the controller below the WidgetWindow controller to add a new FieldWidget with the same type as the top block.
+           \nIf this fails, adds a new FieldWidget to the WidgetWindow
         """
         try:
             self.controller.control_list[0].add_template_child_command(child_type=self.controller.control_list[0].valid_tagoptions)
         except Exception as e:
-            print(f"Could not add a FieldWidget to the first block in MainWindow: {e}\n ...Adding it to MainWindow instead.")
+            print(f"Could not add a FieldWidget to the first block in WidgetWindow: {e}\n ...Adding it to WidgetWindow instead.")
             self.controller.add_widget()
 
     def __init__(self, parent, controller):

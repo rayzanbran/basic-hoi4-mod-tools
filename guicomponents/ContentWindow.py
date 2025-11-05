@@ -1,22 +1,27 @@
-"""The main window controller for hoi4 tools."""
-from guicomponents import BottomMenuBar, FieldWidget
+"""Contains definitions for the possible content panes.\n
+   Ex. WidgetWindow, MainMenuWindow, 
+
+"""
 from tkinter import *
 from WidgetOperationController import *
+from guicomponents.FieldWidget import FieldWidget
+from tkinter import ttk
 
 fieldwidget_list = []
 
-class MainWindow(ttk.Frame):
-    from tkinter import ttk
-
+class WidgetWindow(ttk.Frame):
     def __init__(self, root: Tk):
         self.root = root # Passes the Tk object to this object
 
         super().__init__(self.root, padding=5)
         self.childcontroller = WidgetOperationController(self, fieldwidget_list, self)
+
+        # FIXME set these configurations in their own file
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
+
         self.do_things()
     
     def calc_row_len(self):
@@ -31,10 +36,13 @@ class MainWindow(ttk.Frame):
         return calcrow
     
     def reapply_bottom_menu(self):
+        pass
         """Recalculates the position the menu at the bottom should be at and reapplies it."""
+        """
         calcrow = self.calc_row_len()
         self.bottom_menu_bar.grid_forget()
         self.bottom_menu_bar.grid(row=calcrow, column=0)
+        """
 
 
     def process(self, widget = None):
@@ -86,11 +94,6 @@ class MainWindow(ttk.Frame):
 
         #print (f"\n\nCHILDBLOCK OUTPUT: {output}\n\n")
         return output
-        
-        
-
-
-
 
     def do_things(self):
         
@@ -104,8 +107,9 @@ class MainWindow(ttk.Frame):
             fieldwidget_list.append(FieldWidget(self, self.childcontroller, row=i, col=0, default_tagoption=tag))
         """
 
-        self.bottom_menu_bar = BottomMenuBar(parent=self, controller=self.childcontroller)
-        self.bottom_menu_bar.grid(row=len(fieldwidget_list), column=0)
+        # FIXME The Bottom menu bar cannot be a part of WidgetWindow
+        #self.bottom_menu_bar = BottomMenuBar(parent=self, controller=self.childcontroller)
+        #self.bottom_menu_bar.grid(row=len(fieldwidget_list), column=0)
 
         # add the parent of the entire block
         fieldwidget_list.append(FieldWidget(self, self.childcontroller, 0, 0, valid_tagoptions=FWIDG_FOCUS_BLOCK, template=FWIDG_FOCUS_BLOCK, default_tagoption=FWIDG_FOCUS_BLOCK, disabled_elements=(FWIDG_DEL, FWIDG_TAG_SELECT, FWIDG_KEY_ENTRY)))
@@ -116,10 +120,48 @@ class MainWindow(ttk.Frame):
 
         #self.root.mainloop()
 
+class SettingsPane(ttk.Frame):
+    """The settings menu for the program.
+    
+    """
+
+class MainMenuOptions(ttk.Frame):
+    """The tool launching options that will go within the MainMenuPane."""
+    def __init__(self, parent):
+        """Creates the list of main menu options that 
+        
+        """
+        super().__init__(master=parent, padding=5)
+        
+        # Create the list of available tools to launch
+
+class MainMenuPane(ttk.Frame):
+    """The main menu for the program. Contains tool selection and settings.
+    
+    """
+    def __init__(self, parent):
+        """Creates and aligns the main menu elements.\n
+           parent: the MainWindow this is a part of.
+        """
+        super().__init__(master=parent, padding=5)
+
+        # Set up the components of this window
+        # Main menu options
+        MainMenuOptions(self).grid(row=0, column=0) #FIXME rowspan = NUM_LAUNCHABLE_TOOLS
+
+        # Settings button (launches settings window)
+        
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    """Testing this class."""
+    """Testing this module."""
     root = Tk()
-    window = MainWindow(root)
+    window = WidgetWindow(root)
     fieldwidget_list.append(FieldWidget(window, window.childcontroller, row=6, col=0, template='character', default_tagoption='character'))
     window.reapply_bottom_menu()
     window.mainloop()
