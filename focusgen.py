@@ -1,3 +1,0 @@
-# national focus block generator
-
-

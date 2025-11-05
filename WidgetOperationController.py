@@ -1,4 +1,4 @@
-from FieldWidget import *
+from guicomponents.FieldWidget import *
 from GlobalSettings import *
 class WidgetOperationController:
     """Class for managing lists of Widgets.

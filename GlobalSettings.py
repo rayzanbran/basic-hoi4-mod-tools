@@ -2,7 +2,9 @@
 FIELDWIDGET_PADX = 5
 FIELDWIDGET_PADY = 5
 FWIDG_EL_STICK_DIR = 'e' # The direction(s) in which the FieldWidget elements will be sticky.
-FWIDG_CHILD_DEF_COL = 0 # The default column in which FieldWidget children will be placed.
+FWIDG_CHILD_DEF_COL = 4 # The default column in which FieldWidget children will be placed.
+FWIDG_DEFAULT_STICKY = 'E'
+FWIDG_CHILD_DEFAULT_STICKY = 'W'
 
 # Possible FieldWidget Types
 FWIDG_FOCUS_BLOCK = 'focus'

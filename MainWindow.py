@@ -1,7 +1,6 @@
 """The main window controller for hoi4 tools."""
-from FieldWidget import *
+from guicomponents import BottomMenuBar, FieldWidget
 from tkinter import *
-from BottomMenuBar import *
 from WidgetOperationController import *
 
 fieldwidget_list = []

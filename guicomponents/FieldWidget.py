@@ -23,12 +23,17 @@ class FieldWidget(ttk.Frame):
         print(kwargs)
 
         # Parse kwargs
+        # Need to pop them or tkinter will get mad at us
         self.valid_tagoptions = valid_tagoptions
         self.template = template
         if 'child_type' in kwargs:
             self.valid_tagoptions = kwargs.pop('child_type')
         if 'child_template' in kwargs:
             self.template = kwargs.pop('child_template')
+        if 'sticky' in kwargs:
+            sticky = kwargs.pop('sticky')
+        else:
+            sticky = None
         
         # Set the variables deciding the states of each of the elements in this FieldWidget
         if not disabled_elements == None:
@@ -66,7 +71,7 @@ class FieldWidget(ttk.Frame):
         self.columnconfigure(1, weight=1)
         self.columnconfigure(2, weight=1)
        
-        self.create_widget(row=row, col=col, default_tagoption=default_tagoption)
+        self.create_widget(row=row, col=col, default_tagoption=default_tagoption, sticky=sticky)
 
         # Apply a template if one has been defined.
         if not self.template == None:
@@ -158,7 +163,7 @@ class FieldWidget(ttk.Frame):
 
 
     
-    def add_template_child_command(self, child_type: str | None = None, child_template: str | None = None, default_tagoption: str | None = None):
+    def add_template_child_command(self, child_type: str | None = None, child_template: str | None = None, default_tagoption: str | None = None, **kwargs):
         """Allows creation of a new child with a specified type and/or template.\n
             If no type is specified, one will be located with get_template_for_children
             """
@@ -174,9 +179,9 @@ class FieldWidget(ttk.Frame):
         if self.childlist == None:
             self.childlist = []
             self.childcontroller = WidgetOperationController.WidgetOperationController(self, self.childlist, self.controller.main_window)
-            self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption)
+            self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption, **kwargs)
         else:
-            self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption)
+            self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption, **kwargs)
             print(self.childlist)
 
     def check_tag_val(self):
@@ -187,12 +192,15 @@ class FieldWidget(ttk.Frame):
         else:
             self.disable_button(self.add_child_button)
 
-    def create_widget(self, row, col, default_tagoption: str | None = None):
+    def create_widget(self, row, col, sticky, default_tagoption: str | None = None):
         """Grids this FieldWidget in the parent frame at row,col and creates its elements.\n
            default_tagoption: the pre-filled option to be placed in this widget's dropdown menu.
 
         """
-        self.grid(row=row, column=col,padx=FIELDWIDGET_PADX, pady=FIELDWIDGET_PADY)
+        if sticky == None:
+            sticky = FWIDG_DEFAULT_STICKY
+        
+        self.grid(row=row, column=col,padx=FIELDWIDGET_PADX, pady=FIELDWIDGET_PADY, columnspan=5)
 
         # tags menu
         #FIXME: extend menubutton to create a class that has all the options for each of the categories
@@ -225,11 +233,11 @@ class FieldWidget(ttk.Frame):
         # delete button
         self.delete_button = ttk.Button(self, text = 'Delete', command=self.send_delete_command)
         self.delete_button.config(state=self.delete_button_disabled)
-        self.delete_button.grid(row=0, column=5, sticky=FWIDG_EL_STICK_DIR) #command = delete_command
+        self.delete_button.grid(row=0, column=4, sticky=FWIDG_EL_STICK_DIR) #command = delete_command
         # add child button
         self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_template_child_command)
         self.add_child_button.config(state=self.add_button_disabled)
-        self.add_child_button.grid(row=0, column=4, sticky=FWIDG_EL_STICK_DIR) #command = add_child_command
+        self.add_child_button.grid(row=0, column=3, sticky=FWIDG_EL_STICK_DIR) #command = add_child_command
 
     def set_default_tagoption(self, default_tagoption):
         """Set the default value of this widget's menu field."""

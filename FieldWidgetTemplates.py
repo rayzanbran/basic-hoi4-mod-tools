@@ -1,4 +1,4 @@
-from FieldWidget import FieldWidget
+from guicomponents.FieldWidget import *
 from TagOptions import *
 from GlobalSettings import *
 """Template scripts for FieldWidgets that create their children.
@@ -10,7 +10,7 @@ def template_focus_block_main(self: FieldWidget):
     """
     for key in default_focus_tags:
         if TAG_LIST_IGNORE_CHARACTER not in key: # If we should not ignore this one
-            self.add_template_child_command(child_type=FWIDG_FOCUS_BLOCK, default_tagoption=key)
+            self.add_template_child_command(child_type=FWIDG_FOCUS_BLOCK, default_tagoption=key, sticky=FWIDG_CHILD_DEFAULT_STICKY)
 
     pass
 
