@@ -5,6 +5,7 @@
 from tkinter import *
 from WidgetOperationController import *
 from guicomponents.FieldWidget import FieldWidget
+from guicomponents.BottomMenuBar import BottomMenuBar
 from tkinter import ttk
 
 fieldwidget_list = []
@@ -108,8 +109,9 @@ class WidgetWindow(ttk.Frame):
         """
 
         # FIXME The Bottom menu bar cannot be a part of WidgetWindow
-        #self.bottom_menu_bar = BottomMenuBar(parent=self, controller=self.childcontroller)
-        #self.bottom_menu_bar.grid(row=len(fieldwidget_list), column=0)
+        # Re-enabling it for this build
+        self.bottom_menu_bar = BottomMenuBar(parent=self, controller=self.childcontroller)
+        self.bottom_menu_bar.grid(row=100, column=0) # FIXME remove this once top menu is done
 
         # add the parent of the entire block
         fieldwidget_list.append(FieldWidget(self, self.childcontroller, 0, 0, valid_tagoptions=FWIDG_FOCUS_BLOCK, template=FWIDG_FOCUS_BLOCK, default_tagoption=FWIDG_FOCUS_BLOCK, disabled_elements=(FWIDG_DEL, FWIDG_TAG_SELECT, FWIDG_KEY_ENTRY)))

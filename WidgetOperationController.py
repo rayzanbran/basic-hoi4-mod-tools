@@ -53,12 +53,12 @@ class WidgetOperationController:
         # Check the index of the widget passed.
 
         # Operate on the control list.
-        neighbor = self.control_list[self.control_list.index(widget) - 1]
+        neighbor: FieldWidget = self.control_list[self.control_list.index(widget) - 1]
         self.swap(self.control_list.index(widget), self.control_list.index(neighbor))
 
         # Operate on the GUI.
-        self.move_widget_up(widget)
-        self.move_widget_down(neighbor)
+        self.move_widget_up(widget, increment=neighbor.current_row_span)
+        self.move_widget_down(neighbor, increment=widget.current_row_span)
     
     def swap_widget_down(self, widget: FieldWidget):
         """Swaps a widget with the one below it, in the GUI and the controlled list.\n
