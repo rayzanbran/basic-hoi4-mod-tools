@@ -8,13 +8,19 @@ class guicontroller:
         mainwindow: the the MainWindow this guicontroller is registered to.
         """
         from guicomponents import MainWindow
+        from guicomponents import Tooltip
         self.mainwindow: MainWindow.MainWindow = mainwindow # The Window this instance is registered to
         self.current_content_pane = None # initialize with none
+        self.current_tooltip: Tooltip.Tooltip = None
         self.register_content_pane()
 
     def register_content_pane(self):
         """Updates the content pane in this controller to be the parent's content frame."""
         self.current_content_pane = self.mainwindow.content_window
+
+    def register_tooltip(self, tooltip):
+        """Updates current_tooltip instance variable with tooltip"""
+        self.current_tooltip = tooltip
     
     def clear_parent_content_pane(self):
         # Destroy the child currently in the content window.
@@ -30,6 +36,12 @@ class guicontroller:
 
     def resize_parent(self, new_size):
         self.mainwindow.root.geometry(newGeometry=new_size)
+
+    def display_tooltip(self):
+        """Displays a tooltip next to the user's cursor pertaining to the field they are currently hovering over.
+        
+        """
+
 
     # Opening settings pane
     def open_settings_pane(self):

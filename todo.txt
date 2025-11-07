@@ -1,5 +1,6 @@
 - when switching from main menu to any other screen, hide the target screen until its setup script is done running
 -- (add "loading" screen)
+- bind tooltips to FieldWidgets
 
 - Add comment functionality in block creator
 - Add settings menu (accessible in topbar and main menu)
