@@ -6,13 +6,16 @@ from tkinter import *
 from WidgetOperationController import *
 from guicomponents.FieldWidget import FieldWidget
 from guicomponents.BottomMenuBar import BottomMenuBar
+from guicomponents.guicontroller import *
+from guicomponents.ComponentSetupScripts import *
 from tkinter import ttk
 
 fieldwidget_list = []
 
 class WidgetWindow(ttk.Frame):
-    def __init__(self, root: Tk):
-        self.root = root # Passes the Tk object to this object
+    size = ('1000x400')
+    def __init__(self, parent):
+        self.root = parent # Passes the parent object to this object
 
         super().__init__(self.root, padding=5)
         self.childcontroller = WidgetOperationController(self, fieldwidget_list, self)
@@ -129,13 +132,19 @@ class SettingsPane(ttk.Frame):
 
 class MainMenuOptions(ttk.Frame):
     """The tool launching options that will go within the MainMenuPane."""
-    def __init__(self, parent):
-        """Creates the list of main menu options that 
-        
+    NUM_LAUNCHABLE_TOOLS = 1
+    def __init__(self, parent, controller: guicontroller):
+        """ 
+           parent: MainWindow object\n
+           controller: guicontroller object this is registered to.
         """
         super().__init__(master=parent, padding=5)
+        configure_row_col(self)
         
         # Create the list of available tools to launch
+        self.focus_launch_button = ttk.Button(master=self, text='Focus Creator', padding=5, command=controller.open_focus_pane) #command = 
+        self.focus_launch_button.grid(row=0, column=0, ipadx=5, ipady=5)
+
 
 class MainMenuPane(ttk.Frame):
     """The main menu for the program. Contains tool selection and settings.
@@ -144,26 +153,19 @@ class MainMenuPane(ttk.Frame):
     def __init__(self, parent):
         """Creates and aligns the main menu elements.\n
            parent: the MainWindow this is a part of.
+           controller: the guicontroller object this is registered to.
         """
         super().__init__(master=parent, padding=5)
+        self.controller: guicontroller = parent.master.guicontroller
+        configure_row_col(self)
 
         # Set up the components of this window
         # Main menu options
-        MainMenuOptions(self).grid(row=0, column=0) #FIXME rowspan = NUM_LAUNCHABLE_TOOLS
+        MainMenuOptions(parent=self, controller=self.controller).grid(row=0, column=0, rowspan=MainMenuOptions.NUM_LAUNCHABLE_TOOLS) #FIXME rowspan = NUM_LAUNCHABLE_TOOLS
 
         # Settings button (launches settings window)
-        
-
-
-
-
-
-
 
 if __name__ == "__main__":
     """Testing this module."""
     root = Tk()
-    window = WidgetWindow(root)
-    fieldwidget_list.append(FieldWidget(window, window.childcontroller, row=6, col=0, template='character', default_tagoption='character'))
-    window.reapply_bottom_menu()
-    window.mainloop()
+    MainMenuPane(parent=root).grid(row=0, column=0)
