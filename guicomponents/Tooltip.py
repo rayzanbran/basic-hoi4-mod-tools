@@ -1,6 +1,5 @@
 from tkinter import *
 from tkinter import ttk
-from guicomponents import guihelpers
 
 class Tooltip(ttk.Frame):
     """Hovering Frame containing a custom Label that can be precisely placed anywhere in a parent.
