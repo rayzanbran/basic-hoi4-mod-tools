@@ -1,3 +1,6 @@
+- rewrite FieldWidget.py to make it less gimmicky - check out the different kinds of windows/menus in tkdocs
+
+
 - when switching from main menu to any other screen, hide the target screen until its setup script is done running
 -- (add "loading" screen)
 - bind tooltips to FieldWidgets

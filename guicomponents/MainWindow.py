@@ -13,7 +13,6 @@ class MainWindow(ttk.Frame):
         """Creates the main window in its own Tk instance.
         
         """
-        from guicomponents import ContentWindow
         self.root = Tk()
         self.root.title('hoi4 mod tools')
         self.root.minsize(width=1000, height=400) #Minimum size needed for focus creator FIXME constant this

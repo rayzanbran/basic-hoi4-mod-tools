@@ -6,7 +6,7 @@ class WidgetOperationController:
     """Class for managing lists of Widgets.
 
     """
-    def __init__(self, parent, control_list: list, main_window):
+    def __init__(self, parent, control_list: list, main_window, tooltipcontroller = None):
         """Defines this object's parent, the list of widgets it will be managing,
            and the top level window which has no parent except the Tk root.
         
@@ -14,6 +14,7 @@ class WidgetOperationController:
         self.master: FieldWidget = parent
         self.control_list = control_list
         self.main_window = main_window
+        self.tooltipcontroller = tooltipcontroller
     
     def swap(self, index1: int, index2: int):
         """Swaps two widgets in this controller's control list.\n

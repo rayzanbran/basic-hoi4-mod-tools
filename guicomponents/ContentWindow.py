@@ -9,6 +9,7 @@ from guicomponents.BottomMenuBar import BottomMenuBar
 from guicomponents.guicontroller import *
 from guicomponents.ComponentSetupScripts import *
 from tkinter import ttk
+from guicomponents.tooltipcontroller import TooltipController
 
 fieldwidget_list = []
 
@@ -18,7 +19,7 @@ class WidgetWindow(ttk.Frame):
         self.root = parent # Passes the parent object to this object
 
         super().__init__(self.root, padding=5)
-        self.childcontroller = WidgetOperationController(self, fieldwidget_list, self)
+        self.childcontroller = WidgetOperationController(self, fieldwidget_list, self, tooltipcontroller=TooltipController(self.root))
 
         # FIXME set these configurations in their own file
         self.root.columnconfigure(0, weight=1)

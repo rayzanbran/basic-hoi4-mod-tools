@@ -8,10 +8,10 @@ class guicontroller:
         mainwindow: the the MainWindow this guicontroller is registered to.
         """
         from guicomponents import MainWindow
-        from guicomponents import Tooltip
+        from guicomponents import tooltipcontroller
         self.mainwindow: MainWindow.MainWindow = mainwindow # The Window this instance is registered to
+        self.tooltipcontroller = tooltipcontroller.TooltipController(self.mainwindow)
         self.current_content_pane = None # initialize with none
-        self.current_tooltip: Tooltip.Tooltip = None
         self.register_content_pane()
 
     def register_content_pane(self):
@@ -71,5 +71,7 @@ class guicontroller:
         
 
     # Returning to the main menu?
+
+
 
     

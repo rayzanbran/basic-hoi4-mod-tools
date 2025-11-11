@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from guicomponents.guihelpers import *
 
 class Tooltip(ttk.Frame):
     """Hovering Frame containing a custom Label that can be precisely placed anywhere in a parent.
@@ -14,7 +15,7 @@ class Tooltip(ttk.Frame):
 
         super().__init__(master=target_window, relief='solid',borderwidth=5, style='tooltip_default_style.TFrame')
 
-        self.tooltip_default_style = ttk.Style(self) # FIXME constant this
+        self.tooltip_default_style = ttk.Style() # FIXME constant this
 
         # Create the tooltip contents
         self.tooltip_text = StringVar(value=text)
@@ -36,8 +37,7 @@ class Tooltip(ttk.Frame):
         """Determines whether this tooltip should be above/below and to the left/right of the pointer.
 
         """
-        import guihelpers
-        pointer_position = guihelpers.get_pointer_position(self.target_window)
+        pointer_position = get_pointer_position(self.target_window)
         window_bounds = (self.target_window.winfo_width(), self.target_window.winfo_height())
 
         side = None
@@ -73,12 +73,11 @@ class Tooltip(ttk.Frame):
         """
         side, elevation = self.determine_tooltip_position() # figure out what side of the hovered window the tooltip should be on
 
-        import guihelpers
         x_offset = 10 #FIXME constant these
         y_offset = 10
 
         # Get mouse position relative to the target window.
-        x_pos, y_pos = guihelpers.get_pointer_position(self.target_window)
+        x_pos, y_pos = get_pointer_position(self.target_window)
 
         # get the pixel position of the bottom of the widget being hovered over
         bottom_pixel_y = self.hover_window.winfo_y() + self.hover_window.winfo_height()

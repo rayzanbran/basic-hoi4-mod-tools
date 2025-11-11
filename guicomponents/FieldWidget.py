@@ -143,6 +143,8 @@ class FieldWidget(ttk.Frame):
         print(text)
         print(self.input_entry.get())
         print(self.user_input_str.get())
+
+
     
     def add_child_command(self):
         """Tells this FieldWidget's child controller to create a new child."""
@@ -150,18 +152,11 @@ class FieldWidget(ttk.Frame):
 
         if self.childlist == None: # If child infrastructure has not been initialized yet, initialize it
             self.childlist = []
-            self.childcontroller = WidgetOperationController(self, self.childlist, self.controller.main_window)
+            self.childcontroller = WidgetOperationController(self, self.childlist, self.controller.main_window, self.controller.tooltipcontroller)
             self.childcontroller.add_new_child(child_type=self.valid_tagoptions) # The first time, we need to tell it to place on next row
         else:
             self.childcontroller.add_new_child(child_type=self.valid_tagoptions)
             print(self.childlist)
-
-    def get_type_of_children(self):
-        """Returns a str child_type, which is dependent on the parent's default_tagoptions
-
-        """
-
-
     
     def add_template_child_command(self, child_type: str | None = None, child_template: str | None = None, default_tagoption: str | None = None, **kwargs):
         """Allows creation of a new child with a specified type and/or template.\n
@@ -178,7 +173,7 @@ class FieldWidget(ttk.Frame):
 
         if self.childlist == None:
             self.childlist = []
-            self.childcontroller = WidgetOperationController.WidgetOperationController(self, self.childlist, self.controller.main_window)
+            self.childcontroller = WidgetOperationController.WidgetOperationController(self, self.childlist, self.controller.main_window, self.controller.tooltipcontroller)
             self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption, **kwargs)
         else:
             self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption, **kwargs)
@@ -191,6 +186,10 @@ class FieldWidget(ttk.Frame):
             self.enable_button(self.add_child_button)
         else:
             self.disable_button(self.add_child_button)
+    
+    def get_tag_val(self):
+        """Returns the value of self.tag_str"""
+        return self.tag_str.get()
 
     def create_widget(self, row, col, sticky, default_tagoption: str | None = None):
         """Grids this FieldWidget in the parent frame at row,col and creates its elements.\n
@@ -238,6 +237,10 @@ class FieldWidget(ttk.Frame):
         self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_template_child_command)
         self.add_child_button.config(state=self.add_button_disabled)
         self.add_child_button.grid(row=0, column=3, sticky=FWIDG_EL_STICK_DIR) #command = add_child_command
+
+        # Tooltip stuff
+        self.bind('<Enter>', self.controller.tooltipcontroller.on_mouse_hover)
+        self.bind('<Leave>', self.controller.tooltipcontroller.on_mouse_leave)
 
     def set_default_tagoption(self, default_tagoption):
         """Set the default value of this widget's menu field."""
