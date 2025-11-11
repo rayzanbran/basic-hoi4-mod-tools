@@ -1,0 +1,20 @@
+- when switching from main menu to any other screen, hide the target screen until its setup script is done running
+-- (add "loading" screen)
+- bind tooltips to FieldWidgets
+
+- Add comment functionality in block creator
+- Add settings menu (accessible in topbar and main menu)
+- Add topbar menu
+
+- Add scopes/scope-checking!!
+- Add actual hoi4 tags, organized such that the program knows what tags go in which scope
+- Add error checking for block creator (after above two)
+
+
+- once above is done:
+-- add dynamically updating output preview window
+- add file loading
+- add file inspection (ability to open any block from a loaded file)
+- add proper error logging (send all log messages to file instead of(or as well as???) terminal)
+- add file output
+- make the gui look nicer
