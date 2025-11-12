@@ -1,6 +1,6 @@
 from tkinter import *
 from tkinter import ttk
-from guicomponents.guihelpers import *
+from guihelpers import *
 
 class Tooltip(ttk.Frame):
     """Hovering Frame containing a custom Label that can be precisely placed anywhere in a parent.
@@ -28,10 +28,10 @@ class Tooltip(ttk.Frame):
         self.margin_y = self.winfo_reqheight()
 
         # Create yourself
-        self.style = self.tooltip_default_style
+        #self.style = self.tooltip_default_style
         self.place_self()
 
-        self.tooltip_default_style.theme_use('clam')
+        #self.tooltip_default_style.theme_use('clam')
 
     def determine_tooltip_position(self):
         """Determines whether this tooltip should be above/below and to the left/right of the pointer.

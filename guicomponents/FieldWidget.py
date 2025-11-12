@@ -1,284 +1,167 @@
 from tkinter import *
 from tkinter import ttk
-from GlobalSettings import *
-import TagOptions
-
 
 class FieldWidget(ttk.Frame):
-    """ 
-    Container with a text entry box, descriptor tag, and movement and delete buttons.
-
-    """
-    def __init__(self, parent, controller, row, col, valid_tagoptions: str = FWIDG_FOCUS_BLOCK, default_tagoption: str | None = None, template: str | None = None, disabled_elements: tuple | None = None, **kwargs):
-        """Creates an instance of this object in the parent ttk frame in row row and column col.
-           Accepts same arguments as ttk.Frame.\n
-           default_tagoption: the option of the dropdown menu that will be selected by default.\n
-           valid_tagoptions: The list of options that will be selectable in this widget's dropdown window.\n
-           template: the script (usually creating children) defined in FieldWidgetTemplates.py
-           that will be run on this FieldWidget after creation.\n
-           disabled_elements: which of the elements on this FieldWidget will not be interactable.
-           **kwargs: any keyworded arguments that can go to ttk.Frame.
-
+    """Self-contained Frame with the elements needed for creating one line of hoi4 code."""
+    def __init__(self, start_pos: tuple[int] = None, tagoptions_list: list[str] = None, disabled_elements: list[str] = None, indentation = 0, **kwargs):
+        """Passes **kwargs to ttk.Frame constructor.\n
+           start_pos: tuple (x, y) describing the starting grid position of this FieldWidget.\n
+           tagoptions_list: the list of tag options that will be selectable in this FWidget.\n
+           disabled_elements: the elements in this FWidget that will be disabled.
         """
-        print(kwargs)
 
-        # Parse kwargs
-        # Need to pop them or tkinter will get mad at us
-        self.valid_tagoptions = valid_tagoptions
-        self.template = template
-        if 'child_type' in kwargs:
-            self.valid_tagoptions = kwargs.pop('child_type')
-        if 'child_template' in kwargs:
-            self.template = kwargs.pop('child_template')
-        if 'sticky' in kwargs:
-            sticky = kwargs.pop('sticky')
-        else:
-            sticky = None
-        
-        # Set the variables deciding the states of each of the elements in this FieldWidget
-        if not disabled_elements == None:
-            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled, self.tag_select_disabled, self.key_entry_disabled = self.parse_disabled_elements(disabled_elements)
-        else:
-            self.add_button_disabled, self.delete_button_disabled, self.up_button_disabled, self.tag_select_disabled, self.key_entry_disabled = NORMAL, NORMAL, NORMAL, NORMAL, NORMAL
+        super().__init__(**kwargs)
 
-        # Check if this block is a valid parent; if not, disable the add child button.
-        if not TagOptions.check_valid_parent(default_tagoption):
-            self.add_button_disabled = DISABLED
+        print(self.master)
 
-        super().__init__(master=parent, **kwargs)
-        #self.master = parent
-        self.controller: WidgetOperationController = controller
-        print(f"master of {self} in {row}, {col}: {self.master}")
+        self.indentation = indentation # Starting indentation level.
 
-        # Setting up StringVars
-        self.user_input_str = StringVar()
+        self.start_pos = start_pos # Set the starting position of this Widget - this will not be useful later.
+
+        # Create variables tracking elements of this Widget
+        self.input_str = StringVar()
         self.tag_str = StringVar()
 
-        self.master.columnconfigure(0, weight=1)
-        self.current_row_span = 1
-
-        self.childlist = None # Empty instance variable to store a child if we create one 
-        self.childcontroller = None #...child controller if we create one
-
-        self.input_entry = ttk.Entry(self, textvariable=self.user_input_str) # FIXME Why is this an instance variable?
-
-        # Set the tags that will be selectable in the dropdown list.
-        self.valid_tagoptions_list = TagOptions.possible_tag_lists[self.valid_tagoptions]
-
-        # Weight column expansion 
-        # FIXME change weights?
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=1)
-       
-        self.create_widget(row=row, col=col, default_tagoption=default_tagoption, sticky=sticky)
-
-        # Apply a template if one has been defined.
-        if not self.template == None:
-         self.apply_fieldwidget_template(self.template)
+        # Create the elements of this Widget
+        self.el_state_dict = self._parse_disabled_elements(disabled_elements_list=disabled_elements)
+        self.inputfield, self.tagselector, self.tag_select_menu, self.add_child_button, self.delete_button = (
+            self._create_elements(disabled_elements=self.el_state_dict))
         
-    def parse_disabled_elements(self, inputuple: tuple):
-        """Parses the disabled buttons string tuple and returns a tuple of ttk states that will be given to ttk elements config.
-        
-        """
-        add_button_disabled = DISABLED if FWIDG_ADD in inputuple else NORMAL
-        
-        delete_button_disabled = DISABLED if FWIDG_DEL in inputuple else NORMAL
-        
-        up_button_disabled = DISABLED if FWIDG_UP in inputuple else NORMAL
-        
-        key_entry_disabled = DISABLED if FWIDG_KEY_ENTRY in inputuple else NORMAL
+        # Set the selectable tag options
+        if not tagoptions_list == None:
+            self.set_tag_options(tagoptions_list)
 
-        tag_select_disabled = DISABLED if FWIDG_TAG_SELECT in inputuple else NORMAL
-        
-        return ([add_button_disabled, delete_button_disabled, up_button_disabled, key_entry_disabled, tag_select_disabled])
+        # Handle tooltips
+        self.tooltip_text = None
+
+        self._grid_elements()
+        self._bind_guiactions()
     
-    def move(self, change_x: int | None = 0, change_y: int | None = 0):
-        """Moves this FieldWidget on the GUI by change_x rows and change_y columns.\n
-           <b>Should only be called in regrid.</b>
+    def _parse_disabled_elements(self, disabled_elements_list):
+        """Returns a dictionary of ttk state constants mapped to string nicknames for the elements of a FieldWidget."""
+
+        output_dict = {
+            'input' :  NORMAL,
+            'tag' : NORMAL,
+            'del' : NORMAL,
+            'add' : NORMAL
+        }
+        if not disabled_elements_list == None:
+            for element in disabled_elements_list:
+                if element in output_dict:
+                    output_dict[element] = DISABLED
+        
+        return output_dict
+
+    def _create_elements(self, disabled_elements = None):
+        """Creates the elements of this FieldWidget and returns them.
+           disabled_elements: a dictionary of ttk states
         """
-        # Get the current coordinates of this widget in its parent frame
-        curr_x = self.grid_info()['row']
-        curr_y = self.grid_info()['column']
+        inputfield = ttk.Entry(master=self, textvariable=self.input_str, state=disabled_elements['input'])
+        tagselector = ttk.Menubutton(master=self, text='', textvariable=self.tag_str, state=disabled_elements['tag'])
+        tag_select_menu = Menu(master=tagselector, tearoff=0)
+        tagselector['menu'] = tag_select_menu
+
+        add_child_button = ttk.Button(master=self, text='Add Child', state=disabled_elements['add'])
+        delete_button = ttk.Button(master=self, text='Delete', state=disabled_elements['del'])
+
+        return (inputfield, tagselector, tag_select_menu, add_child_button, delete_button)
+
+    def _on_tagselector_change(self):
+        """Actions to be taken when a new radiobutton is selected in the tagselector."""
+
+    def _set_position(self, coords: tuple = None, **kwargs):
+        """Sets the grid position of this FieldWidget.\n
+           coords: tuple (x, y).\n
+           kwargs: passed to ttk.Frame.grid
+
+        """
+        if not coords == None:
+            self.grid(row=coords[0], column=coords[1], **kwargs)
+        else:
+            self.grid(**kwargs)
+    
+    def _clear_tag_options(self, menu: Menu):
+        """Clears the options in this FieldWidget's optionslist."""
+        menu.option_clear()
+    
+    def _add_tag_options(self, menu: Menu, optionslist: list):
+        """Adds radiobutton options to Menu from optionslist."""
+        for option in optionslist:
+            menu.add_radiobutton(label=option, variable=self.tag_str)
+    
+    def _grid_elements(self):
+        """Create the elements of this Widget that do not need to be stored in instance vars.
+        Grid all the elements of this FieldWidget, as well as gridding this FieldWidget in its parent.
+        """
+        ttk.Button(master=self, text='Up').grid(row=0, column=0)
+        
+        self.inputfield.grid(row=0, column=1)
+        self.tagselector.grid(row=0, column=2)
+        self.add_child_button.grid(row=0, column=3)
+        self.delete_button.grid(row=0, column=4)
+
+        if not self.start_pos == None:
+            self._set_position(coords=self.start_pos)
+    
+    def _change_element_state(self, element: ttk.Button | ttk.Entry | ttk.Menubutton, newstate):
+        """Changes the state of element to newstate."""
+        element.state(newstate)
+    
+    #FIXME once guicontroller is updated, add the commands to .bind()
+    def _bind_guiactions(self):
+        """Binds GUI actions for tooltip display and destruction to this FieldWidget."""
+        self.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover) #, self.controller.on_mouse_enter_fieldwidget -> callback to guicontroller
+        self.bind('<Leave>', self.master.childcontroller.on_event_fieldwidget_leave) #, self.controller.on_mouse_leave_fieldwidget 
+
+        # Need to bind 'enter' for all elements of this fieldwidget...
+        self.add_child_button.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        self.delete_button.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        self.tag_select_menu.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        self.inputfield.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+
+    ##INTERFACE##
+
+    def change_position(self, change_x, change_y):
+        """Changes this grid's position by change_x rows and change_y column."""
+        prev_pos = (self.grid_info()['row'], self.grid_info()['column'])
+        new_pos = (prev_pos[0] + change_x, prev_pos[1] + change_y)
 
         self.grid_forget()
-        self.grid(row =curr_x + change_x, column=curr_y + change_y, padx=5, pady=5, rowspan = self.current_row_span)
+        self.grid(row=new_pos[0], column=new_pos[1])
+    
+    def update_layout(self, coords:tuple = None, **kwargs):
+        """Sets the grid position of this FieldWidget and/or passes any ttk.Widget.grid kwargs to .grid()."""
+        self._set_position(coords, **kwargs)
 
-    def change_rowspan(self, change_rowspan: int):
-        """Changes the rowspan of this FieldWidget by change_rowspan.\n
-           <b>Should only be called in regrid.</b>
+    def extend_tag_options(self, optionslist: list[str]):
+        """Adds the strings in optionslist to the end of this FieldWidget's optionslist."""
+        self._add_tag_options(menu=self.tag_select_menu, optionslist=optionslist)
+
+    def set_tag_options(self, optionslist: list[str]):
+        """Sets the radiobutton options in this FieldWidget's tag_select_menu to optionslist.\n
+           optionslist: list of tag options as strings.
         """
-        self.current_row_span += change_rowspan
-        print(f"{self} rowspan {self.current_row_span}")
+        self._clear_tag_options(menu=self.tag_select_menu)
+        self._add_tag_options(menu=self.tag_select_menu, optionslist=optionslist)
     
-    def regrid(self, change_x: int | None = 0, change_y: int | None = 0, change_rowspan: int | None = 0):
-        """Changes this FieldWidget's position and/or rowspan in the parent frame.\n
-           This should be called when doing either of the above.
-        """
-        # Change rowspan
-        self.change_rowspan(change_rowspan)
+    def update_tooltip(self, new_text: str):
+        """Updates the text of the tooltip this FieldWidget will display."""
+        self.tooltip_text = new_text
+
+    def enable_element(self, element):
+        """Enables element of this FieldWidget."""
+        self._change_element_state(element, NORMAL)
     
-        # Move widget
-        self.move(change_x, change_y)
-    
-    def send_move_up_command(self):
-        if self.grid_info()['row'] > 0: # Check that we are not already at the top
-            self.controller.swap_widget_up(self)
-
-    def send_delete_command(self):
-        self.controller.delete_fieldwidget(self, True)
-    
-    def delete_widget(self):
-        """Deletes this FieldWidget and all of its children."""
-        if not self.childlist == None:
-            for child in self.childlist:
-                child.delete_widget()
-        
-        self.grid_forget()
-        self.destroy()
-
-    #FIXME remove this or figure out what it does??
-    def get_text_entry(self, text):
-        """"""
-        print(text)
-        print(self.input_entry.get())
-        print(self.user_input_str.get())
-
-
-    
-    def add_child_command(self):
-        """Tells this FieldWidget's child controller to create a new child."""
-        from WidgetOperationController import WidgetOperationController
-
-        if self.childlist == None: # If child infrastructure has not been initialized yet, initialize it
-            self.childlist = []
-            self.childcontroller = WidgetOperationController(self, self.childlist, self.controller.main_window, self.controller.tooltipcontroller)
-            self.childcontroller.add_new_child(child_type=self.valid_tagoptions) # The first time, we need to tell it to place on next row
-        else:
-            self.childcontroller.add_new_child(child_type=self.valid_tagoptions)
-            print(self.childlist)
-    
-    def add_template_child_command(self, child_type: str | None = None, child_template: str | None = None, default_tagoption: str | None = None, **kwargs):
-        """Allows creation of a new child with a specified type and/or template.\n
-            If no type is specified, one will be located with get_template_for_children
-            """
-        import WidgetOperationController
-
-        child_type = self.tag_str.get()
-        try:
-            example = TagOptions.possible_tag_lists(child_type)
-        except Exception as e:
-            print(f"Could not set {self} child_type to {self.tag_str.get()}, setting it to {self.valid_tagoptions}.")
-            child_type = self.valid_tagoptions
-
-        if self.childlist == None:
-            self.childlist = []
-            self.childcontroller = WidgetOperationController.WidgetOperationController(self, self.childlist, self.controller.main_window, self.controller.tooltipcontroller)
-            self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption, **kwargs)
-        else:
-            self.childcontroller.add_new_child(valid_tagoptions=child_type, child_template=child_template, default_tagoption=default_tagoption, **kwargs)
-            print(self.childlist)
-
-    def check_tag_val(self):
-        """Check the currently selected tag value and enable/disable the appropriate fields."""
-        tag_val = self.tag_str.get()
-        if TagOptions.check_valid_parent(tag_val):
-            self.enable_button(self.add_child_button)
-        else:
-            self.disable_button(self.add_child_button)
-    
-    def get_tag_val(self):
-        """Returns the value of self.tag_str"""
-        return self.tag_str.get()
-
-    def create_widget(self, row, col, sticky, default_tagoption: str | None = None):
-        """Grids this FieldWidget in the parent frame at row,col and creates its elements.\n
-           default_tagoption: the pre-filled option to be placed in this widget's dropdown menu.
-
-        """
-        if sticky == None:
-            sticky = FWIDG_DEFAULT_STICKY
-        
-        self.grid(row=row, column=col,padx=FIELDWIDGET_PADX, pady=FIELDWIDGET_PADY, columnspan=5)
-
-        # tags menu
-        #FIXME: extend menubutton to create a class that has all the options for each of the categories
-        self.tag_option_button = ttk.Menubutton(self, text= '', textvariable= self.tag_str)
-        self.tag_option_button.grid(row=0, column=1)
-        tag_option_menu = Menu()
-        #tag_option_menu.add_command(command=self.check_tag_val)
-        self.tag_option_button.config(state=self.key_entry_disabled)
-
-        for i in self.valid_tagoptions_list:
-            tag_option_menu.add_radiobutton(label=i, variable=self.tag_str, command=self.check_tag_val)
-        
-        self.tag_option_button['menu'] = tag_option_menu
-
-        # Set the default tag option.
-        if not default_tagoption == None:
-            self.set_default_tagoption(default_tagoption)
-
-
-        # value entry setup
-        self.input_entry.grid(row=0, column=2, sticky=FWIDG_EL_STICK_DIR)
-        self.input_entry.bind('<Return>', func=self.get_text_entry)
-        self.input_entry.config(state=self.tag_select_disabled)
-
-        # move up/down buttons
-        self.up_button = ttk.Button(self, text='Up', command=self.send_move_up_command)
-        self.up_button.config(state=self.up_button_disabled)
-        self.up_button.grid(row=0, column=0, sticky=FWIDG_EL_STICK_DIR)
-
-        # delete button
-        self.delete_button = ttk.Button(self, text = 'Delete', command=self.send_delete_command)
-        self.delete_button.config(state=self.delete_button_disabled)
-        self.delete_button.grid(row=0, column=4, sticky=FWIDG_EL_STICK_DIR) #command = delete_command
-        # add child button
-        self.add_child_button = ttk.Button(self, text = 'Add Child', command=self.add_template_child_command)
-        self.add_child_button.config(state=self.add_button_disabled)
-        self.add_child_button.grid(row=0, column=3, sticky=FWIDG_EL_STICK_DIR) #command = add_child_command
-
-        # Tooltip stuff
-        self.bind('<Enter>', self.controller.tooltipcontroller.on_mouse_hover)
-        self.bind('<Leave>', self.controller.tooltipcontroller.on_mouse_leave)
-
-    def set_default_tagoption(self, default_tagoption):
-        """Set the default value of this widget's menu field."""
-        print(f"Set default tagoption of {self} to {default_tagoption}")
-        self.tag_str.set(default_tagoption)
-        #self.set_textbox_str(TagOptions.default_focus_options[default_tagoption])
-        self.update()
-
-    def set_textbox_str(self, text: str):
-        #TODO: convert this into a tooltip
-        """Set the starting value of this widget's text entry box."""
-        self.user_input_str.set(text)
-
-    def apply_fieldwidget_template(self, template:str):
-        print("entered twilight zone")
-        """Apply a pre-defined template to this FieldWidget."""
-        self.valid_tagoptions = template #FIXME is this line correct?
-        import FieldWidgetTemplates
-        # Search FieldWidgetTemplates dictionary for the script to run on this instance
-        try:
-            FieldWidgetTemplates.template_dict[template](self)
-        except Exception as e:
-            print(f"could not apply template {template} to {self}: {e}")
-    
-    def enable_button(self, button: ttk.Button):
-        """Enables the specified Button within this FieldWidget."""
-        button.config(state=NORMAL)
-    
-    def disable_button(self, button: ttk.Button):
-        """Disables the specified Button within this FieldWidget."""
-        button.config(state=DISABLED)
+    def disable_element(self, element):
+        """Disables element of this FieldWidget."""
+        self._change_element_state(element, DISABLED)
 
 if __name__ == "__main__":
-    from WidgetOperationController import WidgetOperationController
-    """Testing this class"""
+    """Testing this class."""
+    import guihelpers
     root = Tk()
-    FieldWidget(root, WidgetOperationController(), row=0, col=0)
-
+    root.minsize(width=300, height=300)
+    fw = FieldWidget(start_pos=(0,0), master=root, tagoptions_list=['test'], disabled_elements=['input', 'add'])
     root.mainloop()
 
-        
