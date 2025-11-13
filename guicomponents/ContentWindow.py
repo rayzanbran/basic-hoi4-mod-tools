@@ -21,7 +21,7 @@ class WidgetWindow(ttk.Frame):
         import ComponentSetupScripts
         super().__init__(master=master)
 
-        self.grid(row=0, column=0, ipadx=50, ipady=100)
+        self.grid(row=0, column=0)
 
         self.childlist = []
         self.tooltiplist = []
@@ -44,18 +44,18 @@ class WidgetWindow(ttk.Frame):
 
     def insert_widget(self, widget: FieldWidget, coords: tuple[int], insert_below: FieldWidget):
         """Insert a widget below insert_below."""
+        self.childlist.append(widget)
         widget.update_layout(coords=coords)
-        self.move_all_down(insert_below, 1)
-    
-    def add_widget(self, widget: FieldWidget):
-        """Add a FieldWidget to the bottom of the frame."""
+        if not insert_below == None:
+            self.move_all_down(insert_below, 1)
 
     def get_childlist(self):
         return self.children
     
     def display_tooltip(self, hover_window, text, *args):
         """Display a tooltip on the screen."""
-        self.current_tooltip = Tooltip(target_window=self, hover_window=hover_window, text=text)
+        # must be displayed on self.master so it doesn't get clipped by size of WidgetWindow
+        self.current_tooltip = Tooltip(target_window=self.master, hover_window=hover_window, text=text)
         return self.current_tooltip
     
 class WidgetWindowController():
@@ -70,6 +70,7 @@ class WidgetWindowController():
         self.tooltip_creation_delay = 1000 #ms FIXME constant this
         self.current_tooltip: Tooltip = None
         self.requested_tooltip = None
+        self.prev_tooltip_requester = None
         self.still_wants_tooltip = True
 
 
@@ -83,11 +84,6 @@ class WidgetWindowController():
     def _append_to_childlist(self, widget):
         """Appends widget to the end of childlist."""
         self.control_list.append(widget)
-    
-
-    def _fetch_parent_fieldwidgets(self):
-        """Puts all the FieldWidgets in the parent's child list into this controller's control list."""
-        self.control_list = [i for i in self.parentwindow.children.items() if isinstance(i, FieldWidget)]
     
     def _find_last_child(self, target: FieldWidget):
         """Finds the last child of target and returns it, or returns target if it has no children."""
@@ -107,16 +103,21 @@ class WidgetWindowController():
         else:
             return target
     
-    def _add_new_fieldwidget(self, target: FieldWidget, template = None, is_child = False):
+    def _add_new_fieldwidget(self, target: FieldWidget = None, template = None, is_child = False):
         """Adds a new fieldwidget below all the children of target.
            template: the template (defined in FieldWidgetTemplates.py) to apply to the new FieldWidget.
         """
         # Find the row we will place new FieldWidget in.
-        placement_row = self._find_last_child(target).grid_info()['row'] + 1
-        placement_column = target.indentation
+        if not target == None:
+            placement_row = self._find_last_child(target).grid_info()['row'] + 1
+            placement_column = target.indentation
 
-        if is_child:
-            placement_column += 1
+            if is_child:
+                placement_column += 1
+        else:
+            placement_row = len(self.control_list)
+            print(placement_row)
+            placement_column = 0
 
         self.parentwindow.insert_widget(widget=FieldWidget(master=self.parentwindow), coords=(placement_row, placement_column), insert_below=target)
 
@@ -135,6 +136,7 @@ class WidgetWindowController():
         """Tell WidgetWindow to display a tooltip on top of the widget being hovered over."""
         if self.still_wants_tooltip:
             self.tooltip_list.append(self.parentwindow.display_tooltip(hover_window=hover_window, text='example tooltip'))
+            #self.requested_tooltip = None
         
 
     ##INTERFACE##
@@ -145,9 +147,10 @@ class WidgetWindowController():
     def on_event_fieldwidget_hover(self, *args):
         """Queue a tooltip for display after tooltip_creation_delay milliseconds."""
         print('hovering')
-        if self.parentwindow.current_tooltip == None: #Only queue a new tooltip if there is not one on screen already
+        if (self.parentwindow.current_tooltip == None) and (self.requested_tooltip == None): #Only queue a new tooltip if there is not one on screen already
             self.still_wants_tooltip = True
             self.requested_tooltip = args[0].widget.after(self.tooltip_creation_delay, self._make_tooltip, args[0].widget) # Wait a second before creating the tooltip.
+            self.prev_tooltip_requester = args[0].widget
             print(args[0].widget)
             print(self.requested_tooltip)
     
@@ -159,9 +162,10 @@ class WidgetWindowController():
         for tooltip in self.tooltip_list[:]:
             self._destroy_tooltip(tooltip)
 
-        args[0].widget.after_cancel(self.requested_tooltip)
+        self.prev_tooltip_requester.after_cancel(self.requested_tooltip)
 
         self.parentwindow.current_tooltip = None # Finally, set current_tooltip to None
+        self.requested_tooltip = None
 
     def on_event_fieldwidget_up(self, *args):
         """Swaps a FieldWidget and all of its children with the FieldWidget above it."""
@@ -179,6 +183,11 @@ class WidgetWindowController():
         """Deletes a FieldWidget and all its children."""
         pass
 
+    def add_fieldwidget(self):
+        """Adds a new FieldWidget to the bottom of the list."""
+        self._add_new_fieldwidget()
+
+
 
 
 
@@ -189,8 +198,11 @@ if __name__ == "__main__":
     root.minsize(width=300, height=300)
     ww1 = WidgetWindow(root)
     ww1.grid(row=0, column=0)
-    fw1 = FieldWidget(master=ww1, start_pos=(0,0), tagoptions_list=['test', 'test2'], disabled_elements=['input'], padding=5)
+    #ww1.childcontroller.add_fieldwidget()
+    #fw1 = FieldWidget(master=ww1, start_pos=(0,0), tagoptions_list=['test', 'test2'], disabled_elements=['input'], padding=5)
 
+    ab = ttk.Button(master=root, text='+', command=ww1.childcontroller.add_fieldwidget)
+    ab.grid(row=0, column=1)
     root.mainloop()
 
 

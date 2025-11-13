@@ -79,9 +79,10 @@ class Tooltip(ttk.Frame):
         # Get mouse position relative to the target window.
         x_pos, y_pos = get_pointer_position(self.target_window)
 
+        print(f"x_pos: {x_pos}, y_pos: {y_pos}")
         # get the pixel position of the bottom of the widget being hovered over
-        bottom_pixel_y = self.hover_window.winfo_y() + self.hover_window.winfo_height()
-        y_offset = bottom_pixel_y - y_pos + 5 # Default y offset
+        distance_to_bottom = self.hover_window.winfo_height() - get_pointer_position(self.hover_window)[1]
+        print(f"distance_to_bottom: {distance_to_bottom}")
 
         if side == LEFT:
             x_offset = -1 * self.margin_x
@@ -89,9 +90,9 @@ class Tooltip(ttk.Frame):
             x_offset = x_offset
         
         if elevation == TOP:
-            y_offset = self.hover_window.winfo_y() - y_pos - self.margin_y
+            y_offset = self.target_window.winfo_y() - y_pos - self.margin_y
         elif elevation == BOTTOM:
-            y_offset = bottom_pixel_y - y_pos + 5
+            y_offset += distance_to_bottom
 
         x_pos += x_offset
         y_pos += y_offset

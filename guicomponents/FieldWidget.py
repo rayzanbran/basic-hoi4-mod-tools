@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import ttk
+from guiconfig import *
 
 class FieldWidget(ttk.Frame):
     """Self-contained Frame with the elements needed for creating one line of hoi4 code."""
@@ -76,6 +77,7 @@ class FieldWidget(ttk.Frame):
            kwargs: passed to ttk.Frame.grid
 
         """
+        kwargs['sticky'] = N
         if not coords == None:
             self.grid(row=coords[0], column=coords[1], **kwargs)
         else:
@@ -128,7 +130,7 @@ class FieldWidget(ttk.Frame):
         new_pos = (prev_pos[0] + change_x, prev_pos[1] + change_y)
 
         self.grid_forget()
-        self.grid(row=new_pos[0], column=new_pos[1])
+        self.grid(row=new_pos[0], column=new_pos[1], sticky=N)
     
     def update_layout(self, coords:tuple = None, **kwargs):
         """Sets the grid position of this FieldWidget and/or passes any ttk.Widget.grid kwargs to .grid()."""
