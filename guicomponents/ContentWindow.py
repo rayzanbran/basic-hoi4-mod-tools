@@ -11,6 +11,7 @@ from FieldWidget import FieldWidget
 from tkinter import ttk
 # from guicomponents.tooltipcontroller import TooltipController
 from Tooltip import *
+from guiconfig import *
 
 fieldwidget_list = []
 
@@ -21,7 +22,7 @@ class WidgetWindow(ttk.Frame):
         import ComponentSetupScripts
         super().__init__(master=master)
 
-        self.grid(row=0, column=0)
+        self.grid(row=0, column=0, sticky=(N, E, W, S))
 
         self.childlist = []
         self.tooltiplist = []
@@ -36,16 +37,18 @@ class WidgetWindow(ttk.Frame):
     def move_all_down(self, widget: FieldWidget, num_rows: int):
         """Moves all widgets below widget down by num_rows."""
         target_index = self.childlist.index(widget) + 1
-        if target_index < len(self.childlist - 1):
+        if target_index <= len(self.childlist) - 1:
             for widg in self.childlist[target_index:]:
                 widg.change_position(change_y=num_rows)
 
     ##INTERFACE##
 
     def insert_widget(self, widget: FieldWidget, coords: tuple[int], insert_below: FieldWidget):
-        """Insert a widget below insert_below."""
+        """Insert a widget below insert_below.
+           indent_level: the level of indentation to give this FieldWidget.
+        """
         self.childlist.append(widget)
-        widget.update_layout(coords=coords)
+        widget.update_layout(coords=coords, columnspan=4, sticky=(N,E), padx=(widget.indentation * PIXEL_PER_INDENT, 0))
         if not insert_below == None:
             self.move_all_down(insert_below, 1)
 
@@ -107,19 +110,20 @@ class WidgetWindowController():
         """Adds a new fieldwidget below all the children of target.
            template: the template (defined in FieldWidgetTemplates.py) to apply to the new FieldWidget.
         """
+        placement_column = 0
+        indent_level = 0
         # Find the row we will place new FieldWidget in.
         if not target == None:
             placement_row = self._find_last_child(target).grid_info()['row'] + 1
-            placement_column = target.indentation
-
+            indent_level = target.indentation
+            
             if is_child:
-                placement_column += 1
+                indent_level += 1
         else:
             placement_row = len(self.control_list)
             print(placement_row)
-            placement_column = 0
 
-        self.parentwindow.insert_widget(widget=FieldWidget(master=self.parentwindow), coords=(placement_row, placement_column), insert_below=target)
+        self.parentwindow.insert_widget(widget=FieldWidget(master=self.parentwindow, indentation=indent_level), coords=(placement_row, placement_column), insert_below=target)
 
     def _add_new_child_widget(self, target: FieldWidget, template = None):
        """Adds a new widget that is a child of the target.
@@ -177,7 +181,7 @@ class WidgetWindowController():
 
     def on_event_fieldwidget_add_child(self, *args):
         """Creates a new FieldWidget below all children of the target."""
-        pass
+        self._add_new_child_widget(target=args[0])
 
     def on_event_fieldwidget_delete(self, *args):
         """Deletes a FieldWidget and all its children."""

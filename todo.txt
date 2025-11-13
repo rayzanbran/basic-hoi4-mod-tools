@@ -1,7 +1,9 @@
 - Finish re-implementing FieldWidget functionality
 -- adding children
+--- fix widgets below not moving down when child added
+-- moving FieldWidgets up/down within gui (implement the same way as above)
 -- deleting FieldWidgets
--- moving FieldWidgets up/down within gui
+
 
 - when switching from main menu to any other screen, hide the target screen until its setup script is done running
 -- (add "loading" screen)

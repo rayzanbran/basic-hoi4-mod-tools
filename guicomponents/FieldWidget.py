@@ -53,17 +53,23 @@ class FieldWidget(ttk.Frame):
                     output_dict[element] = DISABLED
         
         return output_dict
+    
+    def _send_create_child_command(self):
+        """Tells the controller to create a new child of this FieldWidget."""
+        print(f"send_create_child_command @ {self}")
+        self.master.childcontroller.on_event_fieldwidget_add_child(self) #target=self
 
     def _create_elements(self, disabled_elements = None):
         """Creates the elements of this FieldWidget and returns them.
            disabled_elements: a dictionary of ttk states
         """
+        from functools import partial
         inputfield = ttk.Entry(master=self, textvariable=self.input_str, state=disabled_elements['input'])
         tagselector = ttk.Menubutton(master=self, text='', textvariable=self.tag_str, state=disabled_elements['tag'])
         tag_select_menu = Menu(master=tagselector, tearoff=0)
         tagselector['menu'] = tag_select_menu
 
-        add_child_button = ttk.Button(master=self, text='Add Child', state=disabled_elements['add'])
+        add_child_button = ttk.Button(master=self, text='Add Child', state=disabled_elements['add'], command=self._send_create_child_command)
         delete_button = ttk.Button(master=self, text='Delete', state=disabled_elements['del'])
 
         return (inputfield, tagselector, tag_select_menu, add_child_button, delete_button)
