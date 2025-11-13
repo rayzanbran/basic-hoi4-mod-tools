@@ -1,11 +1,13 @@
-- rewrite FieldWidget.py to make it less gimmicky - check out the different kinds of windows/menus in tkdocs
-
+- Finish re-implementing FieldWidget functionality
+-- adding children
+-- deleting FieldWidgets
+-- moving FieldWidgets up/down within gui
 
 - when switching from main menu to any other screen, hide the target screen until its setup script is done running
 -- (add "loading" screen)
 - bind tooltips to FieldWidgets
 
-- Add comment functionality in block creator
+- Add comment functionality in block creator (comment tag that just lets reader know to put # before line)
 - Add settings menu (accessible in topbar and main menu)
 - Add topbar menu
 
