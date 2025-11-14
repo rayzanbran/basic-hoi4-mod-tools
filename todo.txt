@@ -1,3 +1,5 @@
+- Investigate possibility of switching GUI to PyQt
+
 - Finish re-implementing FieldWidget functionality
 -- adding children (DONE)
 --- fix widgets below not moving down when child added (DONE)
