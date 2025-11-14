@@ -67,12 +67,22 @@ class WidgetWindow(ttk.Frame):
         return self.current_tooltip
     
     def move_widget_up(self, widget: FieldWidget, num_rows: int = 0):
-        """Move a FieldWidget up by num_rows."""
-        widget.change_position(change_y=num_rows)
+        """Move a FieldWidget and its children up by num_rows."""
+        widget.change_position(change_y= -1 *num_rows)
+
+        if widget in self.childcontroller.child_dict.keys():
+            # Because children of children are in the first parent's list,
+            # need to make sure it only moves them once.
+            for widg in self.childcontroller.child_dict[widget]:
+                widg.change_position(change_y = -1 * num_rows)
     
     def move_widget_down(self, widget: FieldWidget, num_rows: int = 0):
-        """Move a FieldWidget in this Frame down by num_rows."""
+        """Move a FieldWidget and its children in this Frame down by num_rows."""
         widget.change_position(change_y=num_rows)
+        
+        if widget in self.childcontroller.child_dict.keys():
+            for widg in self.childcontroller.child_dict[widget]:
+                widg.change_position(change_y = num_rows)
     
    
     
@@ -120,6 +130,13 @@ class WidgetWindowController():
         """Finds the last child of target and returns it, or returns target if it has no children."""
         if self._has_children(target):
             return self.child_dict[target][-1]
+        else:
+            return target
+        
+    def _get_first_child(self, target: FieldWidget):
+        """Finds the first child of target and returns it, or returns target if it has no children."""
+        if self._has_children(target):
+            return self.child_dict[target][0]
         else:
             return target
         
@@ -197,10 +214,10 @@ class WidgetWindowController():
         """
         if operation == self.SORT: # Sort by row the FieldWidget is in.
             self.control_list.sort(key=FieldWidget.get_row)
-            for childlist in self.child_dict.items():
+            for childlist in self.child_dict.values():
                 childlist.sort(key=FieldWidget.get_row)
-            for indentlist in self.indentation_dict:
-                indentlist.sory(key=FieldWidget.get_row)
+            for indentlist in self.indentation_dict.values():
+                indentlist.sort(key=FieldWidget.get_row)
         
         if operation == self.ADD:
             # FIXME insert the FieldWidget to the index of childlist corresponding to its grid row, or append if its row is len
@@ -265,12 +282,12 @@ class WidgetWindowController():
         target_block = self.control_list[target_start_index:last_child_index + 1]
         above_widget_block = self.control_list[above_widget_start_index:above_last_child_index + 1]
 
-        if not (this_indentation_level[0] == above_widget):
+        if not (self.control_list[0] == above_widget):
             start_list = self.control_list[0:above_widget_start_index]
             start_list.extend(target_block)
             target_block = start_list
         
-        if not (this_indentation_level[-1] == widget):
+        if not (self.control_list[-1] == widget):
             end_list = self.control_list[last_child_index + 1:]
             above_widget_block.extend(end_list)
         
@@ -316,7 +333,19 @@ class WidgetWindowController():
 
     def on_event_fieldwidget_up(self, *args):
         """Swaps a FieldWidget and all of its children with the FieldWidget above it."""
-        self._swap_widget_up(args[0])
+        widg = args[0]
+        indentation = str(widg.indentation)
+        if widg.parent == None:
+            if not self.indentation_dict[indentation][0] == widg: # make sure this is not at the top of its indentation level
+                self._swap_widget_up(widg)
+            else:
+                print("fwidg is already at the top")
+        else: # widg is a child
+            if not self._get_first_child(widg.parent) == widg:
+                self._swap_widget_up(widg)
+            else:
+                print("fwidg is already at the top")
+                
 
     def on_event_fieldwidget_down(self, *args):
         """Swaps a FieldWidget and all of its children with the FieldWidget below it."""

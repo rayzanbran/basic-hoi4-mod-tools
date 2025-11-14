@@ -64,6 +64,12 @@ class FieldWidget(ttk.Frame):
         """Tells the controller to create a new child of this FieldWidget."""
         print(f"send_create_child_command @ {self}")
         self.master.childcontroller.on_event_fieldwidget_add_child(self) #target=self
+    
+    def _send_swap_up_command(self):
+        """Tells the controller to swap this FieldWidget up."""
+        
+        print(f"send_swap_up_command @ {self}")
+        self.master.childcontroller.on_event_fieldwidget_up(self)
 
     def _create_elements(self, disabled_elements = None):
         """Creates the elements of this FieldWidget and returns them.
@@ -110,7 +116,7 @@ class FieldWidget(ttk.Frame):
         """Create the elements of this Widget that do not need to be stored in instance vars.
         Grid all the elements of this FieldWidget, as well as gridding this FieldWidget in its parent.
         """
-        ttk.Button(master=self, text='Up').grid(row=0, column=0)
+        ttk.Button(master=self, text='Up', command=self._send_swap_up_command).grid(row=0, column=0)
         
         self.inputfield.grid(row=0, column=1)
         self.tagselector.grid(row=0, column=2)
