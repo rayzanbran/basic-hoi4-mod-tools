@@ -67,9 +67,14 @@ class FieldWidget(ttk.Frame):
     
     def _send_swap_up_command(self):
         """Tells the controller to swap this FieldWidget up."""
-        
+
         print(f"send_swap_up_command @ {self}")
         self.master.childcontroller.on_event_fieldwidget_up(self)
+    
+    def _send_delete_command(self):
+        """Tells the controller to delete this FieldWidget and all of its children."""
+        print(f"send_delete_command in {self}")
+        self.master.childcontroller.on_event_fieldwidget_delete(self)
 
     def _create_elements(self, disabled_elements = None):
         """Creates the elements of this FieldWidget and returns them.
@@ -82,7 +87,7 @@ class FieldWidget(ttk.Frame):
         tagselector['menu'] = tag_select_menu
 
         add_child_button = ttk.Button(master=self, text='Add Child', state=disabled_elements['add'], command=self._send_create_child_command)
-        delete_button = ttk.Button(master=self, text='Delete', state=disabled_elements['del'])
+        delete_button = ttk.Button(master=self, text='Delete', state=disabled_elements['del'], command=self._send_delete_command)
 
         return (inputfield, tagselector, tag_select_menu, add_child_button, delete_button)
 

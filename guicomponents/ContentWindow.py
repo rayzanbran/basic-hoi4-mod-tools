@@ -46,6 +46,7 @@ class WidgetWindow(ttk.Frame):
     def _get_relative_row(self, widget: FieldWidget):
         """Get the row of a FieldWidget relative to its parent."""
         widget_row = widget.grid_info()['row']
+        print(f"FIXME: finish _get_relative_row")
 
     ##INTERFACE##
 
@@ -207,10 +208,84 @@ class WidgetWindowController():
         else:
             self.child_dict[parent] = [widget]
 
+    def _update_control_list(self, new_list: list[FieldWidget]):
+        """Replaces the parent's childlist with new_list"""
+        self.parentwindow.childlist = new_list
+        self.control_list = self.parentwindow.childlist
+    
+    def _remove_from_control_list(self, start_index: int = None, end_index: int = None):
+        """Either removes a widget and all its children from the control list, or removes the control list 
+           segment [start_index : end_index] INCLUSIVE.
+        """
+        #FIXME add functionality for just passing a widget to this and having the method figure it out
+
+        new_control_list_start = self.control_list[0:start_index]
+        new_control_list_end = self.control_list[end_index + 1:]
+        new_control_list_start.extend(new_control_list_end)
+
+        self._update_control_list(new_control_list_start)
+
+        
+
+    def _remove_from_indentation_dict(self, widget: FieldWidget):
+        """Removes a widget from the indentation dict."""
+        indentation_level = str(widget.indentation)
+        self.indentation_dict[indentation_level].remove(widget)
+    
+    def _clear_empty_childlists(self):
+        """Deletes key entries in self.child_dict with empty lists."""
+        for key in list(self.child_dict.keys()):
+            if len(self.child_dict[key]) == 0:
+                del self.child_dict[key]
+
+    
+    def _remove_from_child_dict(self, widget: FieldWidget):
+        """Removes a widget from its parent's lists in child_dict, and deletes the widget's child_dict key if it has one."""
+        # Remove from all parent lists.
+        parent = self._get_parent(widget)
+        while not parent == None:
+            try: # del self.child_dict(widget) will cause this try to fail on all children of this widget, but we need the code to keep going.
+                self.child_dict[parent].remove(widget)
+            except Exception:
+                print(f'could not remove {widget} from {parent} childlist. childlist probably did not exist.')
+
+            oldparent = parent
+            parent = parent.parent
+            if oldparent == parent: # we have reached the end of the parent chain
+                break
+
+
+        # delete child_dict key if it exists.
+        if widget in list(self.child_dict.keys()):
+            del self.child_dict[widget]
+
+        # clear out empty lists in child_dict.
+        self._clear_empty_childlists()
+        
+    def _remove_from_lists(self, widget: FieldWidget):
+        """Removes a widget and all its children from the indentation, child_dict, and control_list data.
+           returns the computed target list once done
+        """
+        target_list = [widget]
+        if widget in self.child_dict.keys():
+            target_list.extend(self.child_dict[widget])
+
+        target_start_index = self.control_list.index(target_list[0])
+        target_end_index = self.control_list.index(target_list[-1])
+
+        for widg in target_list:
+            self._remove_from_indentation_dict(widg)
+            self._remove_from_child_dict(widg)
+
+        self._remove_from_control_list(start_index=target_start_index, end_index=target_end_index)
+
+        return target_list
 
     def _update_lists(self, operation:int = SORT, widget:FieldWidget = None):
         """Update the three control lists associated with this WidgetWindow instance.\n
-           operation: (REMOVE/ADD/SORT) the operation that this will perform.
+           operation: (REMOVE/ADD/SORT) the operation that this will perform.\n
+
+           if operation is REMOVE, will return a list of all FieldWidgets being removed.
         """
         if operation == self.SORT: # Sort by row the FieldWidget is in.
             self.control_list.sort(key=FieldWidget.get_row)
@@ -252,8 +327,10 @@ class WidgetWindowController():
                 
 
         if operation == self.REMOVE:
-            # FIXME remove the FieldWidget from any childlist it is in
-            pass
+            # remove the FieldWidget from any childlist it is in, remove its childlist from childlist dict, 
+            # and remove it from its indentation dict.
+            return self._remove_from_lists(widget)
+
 
 
 
@@ -304,6 +381,24 @@ class WidgetWindowController():
 
         #...and sort the lists.
         self._update_lists(self.SORT)
+    
+    def _delete_fieldwidget(self, widget: FieldWidget):
+        """Deletes a fieldwidget & all its children, updates the lists, 
+           and signals guicontroller to destroy them and move below widgets up."""
+        # Signal guicontroller to move below widgets up
+        target_index = self.control_list.index(widget)
+        target_rowspan = self._get_rowspan(target=widget)
+        for widg in self.control_list[target_index + 1:]:
+            self.parentwindow.move_widget_up(widg, num_rows=target_rowspan)
+
+        # update lists
+        
+        target_list = self._update_lists(operation=self.REMOVE, widget=widget)
+
+        # destroy widgets (maybe part of the list updating?)
+        for widg in target_list:
+            widg.destroy()
+
 
 
     ##INTERFACE##
@@ -358,8 +453,7 @@ class WidgetWindowController():
 
     def on_event_fieldwidget_delete(self, *args):
         """Deletes a FieldWidget and all its children."""
-        self._update_lists(self.REMOVE, args[0])
-        pass
+        self._delete_fieldwidget(args[0])
 
     def add_fieldwidget(self):
         """Adds a new FieldWidget to the bottom of the list."""

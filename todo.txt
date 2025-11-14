@@ -3,8 +3,10 @@
 - Finish re-implementing FieldWidget functionality
 -- adding children (DONE)
 --- fix widgets below not moving down when child added (DONE)
--- moving FieldWidgets up/down within gui (implement the same way as above) (TODO NEXT)
--- deleting FieldWidgets
+-- moving FieldWidgets up (DONE)
+-- deleting FieldWidgets (see FIXME)
+--- FIXME: a child fieldwidget with children deleted above a block that has children on the same 
+---- indentation level will cause the blocks below to move up too far and throw bad row value. needs debugger time.
 -- Template transferance? Template class??
 
 
