@@ -1,8 +1,9 @@
 - Finish re-implementing FieldWidget functionality
--- adding children
---- fix widgets below not moving down when child added
--- moving FieldWidgets up/down within gui (implement the same way as above)
+-- adding children (DONE)
+--- fix widgets below not moving down when child added (DONE)
+-- moving FieldWidgets up/down within gui (implement the same way as above) (TODO NEXT)
 -- deleting FieldWidgets
+-- Template transferance? Template class??
 
 
 - when switching from main menu to any other screen, hide the target screen until its setup script is done running

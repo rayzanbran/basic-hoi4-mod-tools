@@ -45,11 +45,11 @@ class Tooltip(ttk.Frame):
 
         # Desired space between the pointer and edges of window to display this widget
         margin_x = self.margin_x
-        print(f"margin_x: {margin_x}")
+        #print(f"margin_x: {margin_x}")
         margin_y = self.margin_y
 
-        print(pointer_position)
-        print(f"window_bounds: {window_bounds}")
+        #print(pointer_position)
+        #print(f"window_bounds: {window_bounds}")
 
         # Place the tooltip to the side of the pointer where there is space
         if pointer_position[0] + margin_x > window_bounds[0]:
@@ -79,10 +79,10 @@ class Tooltip(ttk.Frame):
         # Get mouse position relative to the target window.
         x_pos, y_pos = get_pointer_position(self.target_window)
 
-        print(f"x_pos: {x_pos}, y_pos: {y_pos}")
+        #print(f"x_pos: {x_pos}, y_pos: {y_pos}")
         # get the pixel position of the bottom of the widget being hovered over
         distance_to_bottom = self.hover_window.winfo_height() - get_pointer_position(self.hover_window)[1]
-        print(f"distance_to_bottom: {distance_to_bottom}")
+        #print(f"distance_to_bottom: {distance_to_bottom}")
 
         if side == LEFT:
             x_offset = -1 * self.margin_x
@@ -97,7 +97,7 @@ class Tooltip(ttk.Frame):
         x_pos += x_offset
         y_pos += y_offset
 
-        print(f"x_pos: {x_pos}, y_pos: {y_pos}")
+        #print(f"x_pos: {x_pos}, y_pos: {y_pos}")
 
         return (x_pos, y_pos)
     
@@ -131,7 +131,7 @@ if __name__ == "__main__":
         
         still_wants_tooltip = True
         requested_tooltip = args[0].widget.after(tooltip_creation_delay, make_tooltip, args[0].widget) # Wait a second before creating the tooltip.
-        print(requested_tooltip)
+        #print(requested_tooltip)
         #current_tooltip = Tooltip(root, text='example tooltip')
 
     # on mouse leave, destroy it or let program know user no longer needs tooltip

@@ -10,6 +10,10 @@ class FieldWidget(ttk.Frame):
            tagoptions_list: the list of tag options that will be selectable in this FWidget.\n
            disabled_elements: the elements in this FWidget that will be disabled.
         """
+        if 'parent' in kwargs:
+            self.parent = kwargs.pop('parent')
+        else:
+            self.parent = None
 
         super().__init__(**kwargs)
 
@@ -18,6 +22,8 @@ class FieldWidget(ttk.Frame):
         self.indentation = indentation # Starting indentation level.
 
         self.start_pos = start_pos # Set the starting position of this Widget - this will not be useful later.
+
+        self.childlist = []
 
         # Create variables tracking elements of this Widget
         self.input_str = StringVar()
@@ -83,9 +89,11 @@ class FieldWidget(ttk.Frame):
            kwargs: passed to ttk.Frame.grid
 
         """
-        kwargs['sticky'] = N
+        kwargs['sticky'] = (N, W)
+        kwargs['padx'] = (self.indentation * PIXEL_PER_INDENT, 0)
         if not coords == None:
-            self.grid(row=coords[0], column=coords[1], **kwargs)
+            self.grid_forget()
+            self.grid(column=coords[0], row=coords[1], **kwargs)
         else:
             self.grid(**kwargs)
     
@@ -118,25 +126,25 @@ class FieldWidget(ttk.Frame):
     
     #FIXME once guicontroller is updated, add the commands to .bind()
     def _bind_guiactions(self):
+        
         """Binds GUI actions for tooltip display and destruction to this FieldWidget."""
-        self.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover) #, self.controller.on_mouse_enter_fieldwidget -> callback to guicontroller
-        self.bind('<Leave>', self.master.childcontroller.on_event_fieldwidget_leave) #, self.controller.on_mouse_leave_fieldwidget 
+        # self.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover) #, self.controller.on_mouse_enter_fieldwidget -> callback to guicontroller
+        # self.bind('<Leave>', self.master.childcontroller.on_event_fieldwidget_leave) #, self.controller.on_mouse_leave_fieldwidget 
 
-        # Need to bind 'enter' for all elements of this fieldwidget...
-        self.add_child_button.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
-        self.delete_button.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
-        self.tag_select_menu.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
-        self.inputfield.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        # # Need to bind 'enter' for all elements of this fieldwidget...
+        # self.add_child_button.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        # self.delete_button.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        # self.tag_select_menu.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
+        # self.inputfield.bind('<Enter>', self.master.childcontroller.on_event_fieldwidget_hover)
 
     ##INTERFACE##
 
-    def change_position(self, change_x, change_y):
+    def change_position(self, change_x: int = 0, change_y: int = 0):
         """Changes this grid's position by change_x rows and change_y column."""
-        prev_pos = (self.grid_info()['row'], self.grid_info()['column'])
+        prev_pos = (self.grid_info()['column'], self.grid_info()['row'])
         new_pos = (prev_pos[0] + change_x, prev_pos[1] + change_y)
 
-        self.grid_forget()
-        self.grid(row=new_pos[0], column=new_pos[1], sticky=N)
+        self._set_position(coords = new_pos)
     
     def update_layout(self, coords:tuple = None, **kwargs):
         """Sets the grid position of this FieldWidget and/or passes any ttk.Widget.grid kwargs to .grid()."""
@@ -164,6 +172,15 @@ class FieldWidget(ttk.Frame):
     def disable_element(self, element):
         """Disables element of this FieldWidget."""
         self._change_element_state(element, DISABLED)
+    
+    def get_row(self):
+        """Returns the grid row of this FieldWidget"""
+        return self.grid_info()['row']
+    
+    def get_parent(self):
+        """Get the parent of this FieldWidget."""
+        return self.parent
+
 
 if __name__ == "__main__":
     """Testing this class."""
