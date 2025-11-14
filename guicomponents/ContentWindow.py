@@ -67,15 +67,16 @@ class WidgetWindow(ttk.Frame):
         self.current_tooltip = Tooltip(target_window=self.master, hover_window=hover_window, text=text)
         return self.current_tooltip
     
-    def move_widget_up(self, widget: FieldWidget, num_rows: int = 0):
+    def move_widget_up(self, widget: FieldWidget, num_rows: int = 0, consider_children: bool = True):
         """Move a FieldWidget and its children up by num_rows."""
         widget.change_position(change_y= -1 *num_rows)
 
-        if widget in self.childcontroller.child_dict.keys():
-            # Because children of children are in the first parent's list,
-            # need to make sure it only moves them once.
-            for widg in self.childcontroller.child_dict[widget]:
-                widg.change_position(change_y = -1 * num_rows)
+        if consider_children:
+            if widget in self.childcontroller.child_dict.keys():
+                # Because children of children are in the first parent's list,
+                # need to make sure it only moves them once.
+                for widg in self.childcontroller.child_dict[widget]:
+                    widg.change_position(change_y = -1 * num_rows)
     
     def move_widget_down(self, widget: FieldWidget, num_rows: int = 0):
         """Move a FieldWidget and its children in this Frame down by num_rows."""
@@ -388,8 +389,9 @@ class WidgetWindowController():
         # Signal guicontroller to move below widgets up
         target_index = self.control_list.index(widget)
         target_rowspan = self._get_rowspan(target=widget)
-        for widg in self.control_list[target_index + 1:]:
-            self.parentwindow.move_widget_up(widg, num_rows=target_rowspan)
+        for widg in self.control_list[target_index + target_rowspan:]:
+            # consider_children = False here because we are iterating over the entire childlist
+            self.parentwindow.move_widget_up(widg, num_rows=target_rowspan, consider_children=False)
 
         # update lists
         
